@@ -130,3 +130,4 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 .cats { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; max-width: 460px }
 .cats div:nth-child(even) { font-family: var(--mono); font-weight: 700; text-align: right }
 .oculto { display: none }
+.marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }

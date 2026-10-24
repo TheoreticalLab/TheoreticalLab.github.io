@@ -1,6 +1,6 @@
 // GRÁFICAS · solo con datos que el estudiante ya obtuvo: puntos medidos con barras de ±1σ y sus predicciones (huecas).
 const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
-const fmt = x => { const a = Math.abs(x); return (a >= 100 ? x.toFixed(0) : a >= 1 ? x.toFixed(1) : a >= 0.01 ? x.toFixed(3) : x.toExponential(1)).replace('.', ',') };
+const fmt = x => { const a = Math.abs(x); if (a < 1e-12) return '0'; return (a >= 100 ? x.toFixed(0) : a >= 1 ? x.toFixed(1) : a >= 0.01 ? x.toFixed(3) : x.toExponential(1)).replace('.', ',') };
 
 /** series: [{puntos: [{t, v, s}], tipo: 'medida' | 'prediccion'}]; etiquetas: {x, y} */
 export function dibujarGrafica(canvas, series, etiquetas) {

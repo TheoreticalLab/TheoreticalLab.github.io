@@ -17,8 +17,11 @@ try {
   await escribe('alias', 'Prueba E2E'); await clic('bNueva');
   ok(/MAS-[A-Z0-9]{4}-[A-Z0-9]{4}/.test($('cabSesion').textContent), 'se crea un identificador: ' + $('cabSesion').textContent);
   ok(qa('[data-letra]').length === 6, 'seis experimentos A, B, C, D, E, I');
+  ok(!$('marcaAgua') || $('marcaAgua').hidden, 'sin marca de agua en la pantalla de inicio');
   await clic(q('[data-letra="C"]'));
   ok(!$('p-laboratorio').hidden && !!$('escena'), 'laboratorio con animación');
+  const ma = $('marcaAgua'), idSes = $('cabSesion').textContent.match(/MAS-\w{4}-\w{4}/)[0];
+  ok(ma && !ma.hidden && decodeURIComponent(ma.style.backgroundImage).includes(idSes) && W.getComputedStyle(ma).pointerEvents === 'none', 'marca de agua con el identificador, sin bloquear los toques');
   await clic('bPlay'); await dormir(400); await clic('bPlay');
   ok(/t = [1-9]|t = 0,[1-9]/.test($('relojT').textContent), 'la animación avanza: ' + $('relojT').textContent);
   await escribe('tSlider', '2.5'); await clic('bMedirAqui');

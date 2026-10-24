@@ -30,6 +30,31 @@ export function analizar(d) {
   const ses = { id, alias: d.estudiante, investigaciones: { [letra]: inv } }, ev = evaluar(ses, inv);
   return { d, id, letra, exp, inv, ev, problemas, clave: id + '|' + letra, modelo: exp.ocultos.modelo }
 }
+/** Añade entregas (objetos JSON); si un estudiante envió varias veces el mismo experimento, se queda la más reciente. */
+export function incorporar(lista, previas = []) {
+  const msgs = []; let out = previas.slice();
+  for (const d of lista) {
+    try {
+      const a = analizar(d), prev = out.find(x => x.clave === a.clave);
+      if (prev && String(prev.d.generado || '') > String(d.generado || '')) continue;
+      out = out.filter(x => x.clave !== a.clave).concat([a])
+    } catch (e) { msgs.push(`${(d && d.estudiante) || 'entrega'}: ${e.message}`) }
+  }
+  return { entregas: out, msgs }
+}
+async function cargarGoogle() {
+  const url = $('gUrl').value.trim(), clave = $('gClave').value;
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) { $('gEstado').textContent = 'La dirección debe ser la del receptor y terminar en /exec.'; return }
+  try { localStorage.setItem(CLAVE + ':url', url); sessionStorage.setItem(CLAVE + ':clave', clave) } catch (e) { }
+  $('gEstado').textContent = 'Cargando…';
+  try {
+    const r = await (await fetch(`${url}?accion=lista&clave=${encodeURIComponent(clave)}`)).json();
+    if (!r.ok) { $('gEstado').textContent = r.error === 'clave' ? 'Clave incorrecta (o CLAVE_DOCENTE sin configurar).' : 'Error: ' + r.error; return }
+    const x = incorporar(r.entregas, entregas); entregas = x.entregas; pintar();
+    $('gEstado').textContent = `${r.entregas.length} envíos recibidos · ${entregas.length} investigaciones en la lista${x.msgs.length ? ' · ' + x.msgs.length + ' no válidos' : ''}`;
+    if (x.msgs.length) $('aviso').innerHTML = `<div class="aviso mal">${x.msgs.map(esc).join('<br>')}</div>`
+  } catch (e) { $('gEstado').textContent = 'No se pudo conectar con el receptor.' }
+}
 function cargarArchivos(files) {
   const msgs = [];
   Promise.all([...files].map(f => f.text().then(t => { try { const a = analizar(JSON.parse(t)); entregas = entregas.filter(x => x.clave !== a.clave).concat([a]) } catch (e) { msgs.push(`${f.name}: ${e.message}`) } }))).then(() => { pintar(); if (msgs.length) $('aviso').innerHTML = `<div class="aviso mal">${msgs.map(esc).join('<br>')}</div>` })
@@ -69,6 +94,7 @@ function detalle(i) {
 document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.ver != null) detalle(+b.dataset.ver);
+  if (b.id === 'bGoogle') cargarGoogle();
   if (b.id === 'bCsv') { const L = [['estudiante', 'identificador', 'experimento', 'modelo', 'conclusion', 'defendible', ...CATS.map(c => 'auto_' + c[0]), 'nota_auto', 'nota_final', 'integridad', 'comentario'].join(',')];
     for (const a of entregas) { const n = notas[a.clave] || {}, q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"'; L.push([q(a.d.estudiante), a.id, a.letra, a.modelo, a.inv.conclusion ? a.inv.conclusion.tipo : '', a.inv.conclusion ? CONCLUSIONES_ADMISIBLES[a.modelo].includes(a.inv.conclusion.tipo) : '', ...CATS.map(c => a.ev.categorias[c[0]]), a.ev.total, total(a), a.problemas.length ? 'revisar' : 'ok', q(n.comentario)].join(',')) }
     descargar('calificaciones-laboratorio-mas.csv', '﻿' + L.join('\n'), 'text/csv') }
@@ -85,5 +111,6 @@ if ($('archivos')) {   // solo en docente.html (las pruebas importan analizar si
   $('archivos').addEventListener('change', e => cargarArchivos(e.target.files));
   document.addEventListener('dragover', e => e.preventDefault());
   document.addEventListener('drop', e => { e.preventDefault(); cargarArchivos(e.dataTransfer.files) });
+  try { $('gUrl').value = localStorage.getItem(CLAVE + ':url') || ''; $('gClave').value = sessionStorage.getItem(CLAVE + ':clave') || '' } catch (e) { }
   pintar()
 }

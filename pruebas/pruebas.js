@@ -261,6 +261,69 @@ prueba('El informe del estudiante (HTML y JSON) no revela el modelo oculto y con
   prueba('Docente: un informe íntegro se reproduce exactamente desde la semilla', () => { const s = sesiones.find(x => x.est === 'cientifico'), a = analizar(JSON.parse(JSON.stringify(informeJSON(s.ses, s.inv.letra)))); if (a.problemas.length) throw new Error(a.problemas.join('; ')); return a.modelo === s.modelo });
   prueba('Docente: detecta una medición editada a mano', () => { const s = sesiones.find(x => x.est === 'cientifico'), j = JSON.parse(JSON.stringify(informeJSON(s.ses, s.inv.letra))); const m = j.investigacion.mediciones[0]; m.valores[m.principal].v *= 1.01; const a = analizar(j); if (!a.problemas.length) throw new Error('no detectada'); return a.problemas[0] });
 }
+// ======================= 6. ENVÍO A GOOGLE SHEETS (receptor Codigo.gs con servicios de Google simulados) =======================
+{
+  const src = await (await fetch('../google/Codigo.gs')).text();
+  const nuevoGoogle = (props = {}) => {
+    const hojas = {}, archivos = {}, carpetas = {}; let nId = 0;
+    const hoja = n => ({ n, filas: [], appendRow(r) { this.filas.push(r) }, setFrozenRows() { }, getDataRange() { const f = this.filas; return { getValues: () => f } } });
+    const G = {
+      SpreadsheetApp: { getActiveSpreadsheet: () => ({ getSheetByName: n => hojas[n] || null, insertSheet: n => (hojas[n] = hoja(n)) }) },
+      DriveApp: {
+        getFoldersByName: n => { const c = carpetas[n]; let usado = false; return { hasNext: () => !!c && !usado, next: () => { usado = true; return c } } },
+        createFolder: n => (carpetas[n] = { createFile: (nombre, texto) => { const id = 'archivo' + String(++nId).padStart(6, '0'); return (archivos[id] = { getUrl: () => 'https://drive/' + id, getId: () => id, getBlob: () => ({ getDataAsString: () => texto }), nombre }) } }),
+        getFileById: id => archivos[id]
+      },
+      PropertiesService: { getScriptProperties: () => ({ getProperty: k => props[k] ?? null }) },
+      LockService: { getScriptLock: () => ({ waitLock() { }, releaseLock() { } }) },
+      Utilities: { formatDate: d => d.toISOString().replace(/\D/g, '').slice(0, 14) },
+      ContentService: { createTextOutput: s => ({ setMimeType: () => ({ texto: s }) }), MimeType: { JSON: 'json' } }
+    };
+    const api = new Function(...Object.keys(G), src + '\nreturn { doPost, doGet };')(...Object.values(G));
+    return { api, hojas, archivos, post: obj => JSON.parse(api.doPost({ postData: { contents: typeof obj === 'string' ? obj : JSON.stringify(obj) } }).texto), get: p => JSON.parse(api.doGet({ parameter: p }).texto) }
+  };
+  const s0 = sesiones.find(x => x.est === 'cientifico'), doc = JSON.parse(JSON.stringify(informeJSON(s0.ses, s0.inv.letra)));
+  prueba('Receptor de Google: guarda la entrega en Drive y añade su fila a la hoja «Entregas»', () => {
+    const g = nuevoGoogle({ CODIGOS_CLASE: 'FG-A, FG-B', CLAVE_DOCENTE: 's3creta' }), r = g.post({ ...doc, codigoClase: 'fg-a' });
+    if (!r.ok || !/^[A-Z0-9]{6}$/.test(r.recibo)) throw new Error(JSON.stringify(r));
+    const f = g.hojas.Entregas.filas; if (f.length !== 2 || f[1][3] !== s0.ses.id || f[1][4] !== s0.inv.letra || f[1][1] !== 'FG-A' || f[1][6] !== doc.evaluacionProvisional.total) throw new Error(JSON.stringify(f[1]));
+    return 'fila: ' + JSON.stringify(f[1].slice(1, 8))
+  });
+  prueba('Receptor de Google: rechaza código de clase ajeno, JSON que no es un informe y lecturas sin la clave docente', () => {
+    const g = nuevoGoogle({ CODIGOS_CLASE: 'FG-A', CLAVE_DOCENTE: 's3creta' });
+    if (g.post({ ...doc, codigoClase: 'OTRA' }).error !== 'codigo') throw new Error('acepta código ajeno');
+    if (g.post({ hola: 1 }).error !== 'formato' || g.post('no es json').ok) throw new Error('acepta basura');
+    if (g.get({ accion: 'lista', clave: 'mala' }).error !== 'clave' || g.get({ accion: 'lista' }).ok) throw new Error('lista sin clave');
+    if (!nuevoGoogle({ CODIGOS_CLASE: '' }).post({ ...doc, codigoClase: '' }).ok) throw new Error('sin códigos configurados debería aceptar')
+  });
+  {
+    const { CONFIG } = await import('../js/config.js'), { enviarAlProfesor } = await import('../js/envio.js'), { incorporar } = await import('../js/docente.js');
+    const g = nuevoGoogle({ CODIGOS_CLASE: 'FG-A', CLAVE_DOCENTE: 's3creta' }), antes = CONFIG.urlEnvio;
+    const fetchFalso = async (url, o) => ({ json: async () => g.post(o.body) });
+    const r0 = await enviarAlProfesor(s0.ses, s0.inv.letra, 'FG-A', fetchFalso);
+    prueba('Envío sin activar: avisa y no envía (la descarga de archivos sigue disponible)', () => !!r0.error && /no ha activado/.test(r0.error));
+    CONFIG.urlEnvio = 'https://script.google.com/macros/s/AKfycbPRUEBA_123/exec';
+    const rSin = await enviarAlProfesor(s0.ses, s0.inv.letra, '', fetchFalso), rMal = await enviarAlProfesor(s0.ses, s0.inv.letra, 'ZZ', fetchFalso);
+    const rOk = await enviarAlProfesor(s0.ses, s0.inv.letra, 'fg-a', fetchFalso), rRed = await enviarAlProfesor(s0.ses, s0.inv.letra, 'FG-A', async () => { throw new Error('sin red') });
+    const s2 = sesiones.find(x => x.est === 'periodo'); await enviarAlProfesor(s2.ses, s2.inv.letra, 'FG-A', fetchFalso);
+    CONFIG.urlEnvio = antes;
+    prueba('Envío: pide el código, rechaza uno ajeno, guarda el recibo y avisa si no hay conexión', () => {
+      if (!/código/.test(rSin.error) || !/código de clase no es válido/.test(rMal.error) || !rOk.ok || !/conectar/.test(rRed.error)) throw new Error(JSON.stringify([rSin, rMal, rOk, rRed]));
+      return s0.inv.envios.length === 1 && s0.inv.envios[0].recibo === rOk.recibo && s0.inv.envios[0].codigo === 'FG-A'
+    });
+    const lista = g.get({ accion: 'lista', clave: 's3creta' }), x = incorporar(lista.entregas);
+    prueba('Docente: carga desde el receptor, regenera el modelo oculto y no encuentra problemas de integridad', () => {
+      if (!lista.ok || lista.entregas.length !== 2 || x.entregas.length !== 2 || x.msgs.length) throw new Error(JSON.stringify({ n: lista.entregas.length, msgs: x.msgs }));
+      if (x.entregas.some(a => a.problemas.length)) throw new Error(x.entregas.map(a => a.problemas).join(';'));
+      return x.entregas.map(a => `${a.id}/${a.letra}: ${a.modelo}, nota ${a.ev.total}`).join(' · ')
+    });
+    prueba('Docente: si un estudiante envía dos veces, se queda la entrega más reciente', () => { const d1 = JSON.parse(JSON.stringify(doc)), d2 = JSON.parse(JSON.stringify(doc)); d1.generado = '2026-10-24T10:00:00Z'; d2.generado = '2026-10-24T11:00:00Z'; d2.estudiante = 'segunda'; const y = incorporar([d2, d1]); return y.entregas.length === 1 && y.entregas[0].d.estudiante === 'segunda' });
+  }
+}
+{
+  const { svgMarca, urlMarca } = await import('../js/marca.js'), s = svgMarca('MAS-ABCD-2345 · <Ana & "Luis">');
+  prueba('Marca de agua: escapa el alias y es una imagen válida', () => { const doc2 = new DOMParser().parseFromString(s, 'image/svg+xml'); if (doc2.querySelector('parsererror')) throw new Error('SVG inválido'); return doc2.querySelector('text').textContent === 'MAS-ABCD-2345 · <Ana & "Luis">' && urlMarca('x').startsWith('url("data:image/svg+xml') });
+}
 prueba('Banco de preguntas: todos los nodos tienen identificador único y categoría válida', () => { const s = new Set(NODOS.map(n => n.id)); if (s.size !== NODOS.length) throw new Error('duplicados'); return NODOS.length + ' nodos' });
 
 await fetch('/resultado', { method: 'POST', body: JSON.stringify({ fin: true, lineas, pasan, total }) });

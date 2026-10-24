@@ -3,6 +3,7 @@ import { experimento, VERSION_MOTOR, T_MAX, CREDITOS } from './sesion.js';
 import { INSTRUMENTOS, conIncertidumbre } from './mediciones.js';
 import { HIPOTESIS } from './pedagogia.js';
 import { evaluar } from './evaluacion.js';
+import { urlMarca, textoMarca } from './marca.js';
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fecha = iso => { try { return new Date(iso).toLocaleString('es') } catch (e) { return iso } };
@@ -39,7 +40,7 @@ export function informeHTML(ses, letra) {
   const hipActual = Object.entries(inv.hipotesis).map(([h, x]) => `<li>${esc(HIPOTESIS[h])}: <b>${esc(x.estado)}</b>${x.nota ? ' — ' + esc(x.nota) : ''}</li>`).join('');
   const cats = [['predicciones', 'Calidad de las predicciones'], ['seleccion', 'Selección de experimentos'], ['calculos', 'Cálculos y comparaciones'], ['razonamiento', 'Razonamiento e hipótesis'], ['conclusion', 'Conclusión e incertidumbre']];
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Informe ${esc(ses.id)} · experimento ${esc(letra)}</title>
-<style>body{font:15px/1.5 system-ui,sans-serif;max-width:980px;margin:24px auto;padding:0 16px;color:#1b1f24;background:#fff}h1{font-size:22px}h2{font-size:17px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:4px 6px;vertical-align:top;text-align:left}th{background:#f3f4f6}.k{display:grid;grid-template-columns:220px 1fr;gap:2px 12px}.nota{font-size:28px;font-weight:700}small{color:#666}@media print{h2{break-after:avoid}}</style></head><body>
+<style>body{font:15px/1.5 system-ui,sans-serif;max-width:980px;margin:24px auto;padding:0 16px;color:#1b1f24;background:#fff}h1{font-size:22px}h2{font-size:17px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:4px 6px;vertical-align:top;text-align:left}th{background:#f3f4f6}.k{display:grid;grid-template-columns:220px 1fr;gap:2px 12px}.nota{font-size:28px;font-weight:700}small{color:#666}@media print{h2{break-after:avoid}}body{background-image:${urlMarca(textoMarca(ses)).replace(/</g, '%3C')};-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>
 <h1>Informe de investigación · Laboratorio MAS</h1>
 <div class="k"><b>Identificador de la sesión</b><span>${esc(ses.id)}</span><b>Estudiante (alias)</b><span>${esc(ses.alias || '—')}</span><b>Fecha de inicio</b><span>${esc(fecha(inv.iniciada))}</span><b>Informe generado</b><span>${esc(fecha(new Date().toISOString()))}</span><b>Experimento</b><span>${esc(letra)}</span>
 <b>Parámetros nominales</b><span>m = ${num(e.nominal.m)} kg · k = ${num(e.nominal.k)} N/m · A = ${num(e.nominal.A)} m · x(0) = A, v(0) = 0</span><b>Créditos usados</b><span>${CREDITOS - inv.creditos} de ${CREDITOS}</span>

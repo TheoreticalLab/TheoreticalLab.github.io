@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com; base-uri 'none'; form-action 'none'; object-src 'none'">
 <title>Revisión docente · Laboratorio MAS</title>
 <link rel="icon" href="icono.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/estilo.css">
@@ -18,6 +18,11 @@
     <div id="aviso"></div>
     <p class="fila"><button class="btn" id="bCsv">Exportar calificaciones (CSV)</button><span class="suave peq">Tus notas y comentarios se guardan en este navegador.</span></p>
   </div>
+  <div class="tarjeta"><h2>Entregas recibidas en tu Google Sheets</h2>
+    <p class="suave peq">La dirección del receptor (termina en <span class="mono">/exec</span>) y la CLAVE_DOCENTE que pusiste en Apps Script. Se recuerdan solo en este navegador.</p>
+    <div class="rejilla"><label class="campo"><span>Dirección del receptor</span><input id="gUrl" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
+      <label class="campo"><span>Clave docente</span><input id="gClave" type="password" autocomplete="off"></label></div>
+    <p class="fila"><button class="btn prim" id="bGoogle">Cargar entregas</button><span class="suave peq" id="gEstado"></span></p></div>
   <div class="tarjeta" id="lista"></div>
   <div id="detalle"></div>
   <div class="tarjeta"><h2>Reproducir una sesión desde su identificador</h2><p class="suave peq">Muestra la asignación oculta y los parámetros de los seis experimentos (no lo compartas con los estudiantes).</p>

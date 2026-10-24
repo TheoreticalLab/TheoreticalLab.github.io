@@ -9,6 +9,9 @@ import { informeHTML, informeJSON, descargar, NOMBRE_CONCLUSION, LIMITACIONES } 
 import { guardarSesion, sesionActual, cargarSesion, listarSesiones, activarSesion, cerrarSesion } from './almacen.js';
 import { dibujarEscena } from './animacion.js';
 import { dibujarGrafica } from './graficas.js';
+import { aplicarMarca } from './marca.js';
+import { CONFIG } from './config.js';
+import { envioActivo, enviarAlProfesor } from './envio.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -38,7 +41,7 @@ function cabecera() {
   document.querySelectorAll('nav.pest button').forEach(b => { b.setAttribute('aria-current', b.dataset.p === pantalla ? 'page' : 'false'); b.disabled = b.dataset.p !== 'inicio' && !I })
 }
 function pintar() {
-  cabecera();
+  cabecera(); aplicarMarca(ses, pantalla !== 'inicio' && !!inv());
   for (const p of ['inicio', 'laboratorio', 'instrumentos', 'investigacion', 'informe']) $('p-' + p).hidden = p !== pantalla;
   ({ inicio: pInicio, laboratorio: pLab, instrumentos: pInstr, investigacion: pInv, informe: pInforme })[pantalla]();
   if (pantalla === 'laboratorio') animar(); else ui.play = false
@@ -261,7 +264,15 @@ function pInforme() {
   $('p-informe').innerHTML = msg() + `<div class="tarjeta"><h2>Conclusión entregada</h2><p><b>${esc(NOMBRE_CONCLUSION[C.tipo])}</b> · ${esc(new Date(C.hora).toLocaleString('es'))}</p><p>${esc(C.justificacion)}</p></div>` + resumen +
     `<div class="tarjeta"><h2>Calificación provisional</h2><p class="nota">${ev.total}<span class="suave" style="font-size:18px"> / 100</span></p><div class="cats">${cats.map(([k, t]) => `<div>${t}</div><div>${ev.categorias[k]} / 20</div>`).join('')}</div>
       <p class="suave peq">Automática y provisional: tu profesor revisará ${ev.pendienteDocente.length} textos razonados. La nota no interpreta el contenido de lo que escribiste.</p></div>
-    <div class="tarjeta"><h2>Exportar</h2><p class="fila"><button class="btn prim" id="bHtml">Descargar informe (HTML)</button><button class="btn" id="bJson">Descargar datos (JSON)</button></p><p class="suave peq">Entrega los dos archivos a tu profesor. El JSON permite reproducir exactamente tu investigación.</p></div>`
+    ${tarjetaEnvio(I)}
+    <div class="tarjeta"><h2>Descargar</h2><p class="fila"><button class="btn${envioActivo() ? '' : ' prim'}" id="bHtml">Descargar informe (HTML)</button><button class="btn" id="bJson">Descargar datos (JSON)</button></p><p class="suave peq">${envioActivo() ? 'Guarda una copia para ti. Si el envío falla, entrega estos dos archivos a tu profesor.' : 'Entrega los dos archivos a tu profesor. El JSON permite reproducir exactamente tu investigación.'}</p></div>`
+}
+function tarjetaEnvio(I) {
+  if (!envioActivo()) return '';
+  const env = (I.envios || []).map(x => `<li>Recibo <b class="mono">${esc(x.recibo)}</b> · ${esc(new Date(x.hora).toLocaleString('es'))}${x.codigo ? ' · clase ' + esc(x.codigo) : ''}</li>`).join('');
+  return `<div class="tarjeta"><h2>Enviar al profesor</h2>${env ? `<div class="aviso ok">Enviado. Guarda tu recibo:<ul>${env}</ul></div>` : '<p>Envía tu investigación directamente a tu profesor. Se envía tu nombre o alias, tu identificador y todo tu registro (mediciones, predicciones, respuestas y conclusión).</p>'}
+    ${CONFIG.pedirCodigoClase ? `<label class="campo" style="max-width:260px"><span>Código de clase</span><input id="codClase" autocapitalize="characters" spellcheck="false" maxlength="30" value="${esc(ses.codigoClase || '')}"></label>` : ''}
+    <p><button class="btn prim" id="bEnviar">${env ? 'Volver a enviar' : 'Enviar al profesor'}</button></p></div>`
 }
 document.addEventListener('click', e => {
   if (pantalla !== 'informe') return; const b = e.target.closest('button'); if (!b) return; const I = inv();
@@ -271,6 +282,11 @@ document.addEventListener('click', e => {
     if (!confirm('La entrega es definitiva: ya no podrás medir ni cambiar respuestas. ¿Entregar?')) return;
     const r = INV.entregarConclusion(I, { tipo: t.value, evidencias: [...document.querySelectorAll('[data-cev]:checked')].map(i => +i.value), z: $('cz').value, limitaciones: [...document.querySelectorAll('[data-clim]:checked')].map(i => i.value), justificacion: $('cjust').value });
     if (r.error) return aviso(r.error, 'mal'); guardar(); pintar(); return
+  }
+  if (b.id === 'bEnviar') {
+    const cod = $('codClase') ? $('codClase').value : ''; b.disabled = true; b.textContent = 'Enviando…';
+    enviarAlProfesor(ses, I.letra, cod).then(r => { if (cod) ses.codigoClase = cod.trim().toUpperCase(); guardar(); if (r.error) aviso(r.error, 'mal'); else aviso(`Enviado. Tu recibo es ${r.recibo}.`, 'ok') });
+    return
   }
   const base = `informe-${ses.id}-${I.letra}`;
   if (b.id === 'bHtml') descargar(base + '.html', informeHTML(ses, I.letra), 'text/html');
