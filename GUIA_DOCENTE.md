@@ -158,6 +158,7 @@ El navegador aísla la página por diseño.
 | **Copias de texto** | Especialmente de enunciados de preguntas |
 | **Inserciones grandes de golpe** | ≥ 20 caracteres en una sola operación (portapapeles del teclado, dictado, autocompletar) |
 | **Cómo se escribió cada respuesta** | Caracteres, segundos y texto insertado de golpe. Se marcan las respuestas de ≥ 80 caracteres escritas a más de 8 caracteres por segundo |
+| **Recordatorio ético** | Al volver tras salir ≥ 3 s con una pregunta, predicción o conclusión abierta, aparece arriba una franja: «Saliste de la app y volviste a entrar… Te recordamos las reglas éticas: trabajo individual, sin IA ni ayuda externa, con tus propias mediciones». Indica cuántas veces desde la 3.ª. No redibuja la pantalla, así que no se pierde lo que estaba escribiendo |
 | **Marca de agua** | Identificador y alias en diagonal sobre las pantallas con datos y en el informe HTML: las capturas son rastreables |
 
 **Dónde lo ves:**

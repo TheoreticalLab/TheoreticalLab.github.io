@@ -34,7 +34,13 @@ try {
   // integridad: pegar está bloqueado y se registra; salir de la app con la predicción abierta se registra
   { const dt = new W.DataTransfer(); dt.setData('text/plain', 'Respuesta copiada de una IA'); const ev = new W.ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }); $('predJust').dispatchEvent(ev); await dormir(50);
     ok(ev.defaultPrevented && $('predJust').value === '' && /no se puede pegar/.test(D.body.textContent), 'pegar en la justificación está bloqueado y se avisa') }
-  W.dispatchEvent(new W.Event('blur')); await dormir(1300); W.dispatchEvent(new W.Event('focus')); await dormir(500);
+  await escribe('predJust', 'x = A cos(ωt) con ω = √(k/m)');
+  W.dispatchEvent(new W.Event('blur')); await dormir(1300); W.dispatchEvent(new W.Event('focus')); await dormir(300);
+  ok(!$('avisoEtico') || $('avisoEtico').hidden, 'una salida de menos de 3 s no muestra el recordatorio');
+  W.dispatchEvent(new W.Event('blur')); await dormir(3200); W.dispatchEvent(new W.Event('focus')); await dormir(300);
+  ok($('avisoEtico') && !$('avisoEtico').hidden && /reglas éticas/.test($('avisoEtico').textContent) && /tu predicción/.test($('avisoEtico').textContent), 'al volver tras ≥ 3 s con la predicción abierta aparece el recordatorio ético');
+  ok($('predJust') && $('predJust').value === 'x = A cos(ωt) con ω = √(k/m)', 'el recordatorio no borra lo que estaba escribiendo');
+  await clic('bCerrarEtico'); ok($('avisoEtico').hidden, 'el recordatorio se cierra con «Entendido»');
   await escribe('predValor', '0,05'); await escribe('predJust', 'x = A cos(ωt) con ω = √(k/m)'); await clic('bConfirmarPred');
   ok(!!$('bEjecutar'), 'predicción confirmada; queda el botón de medir');
   await clic('bEjecutar');
@@ -52,7 +58,7 @@ try {
   W.getSelection().selectAllChildren(preg); D.dispatchEvent(new W.ClipboardEvent('copy', { bubbles: true })); W.getSelection().removeAllRanges(); await dormir(500);
   { const s = JSON.parse(W.localStorage.getItem('laboratorio-mas-v1')), I = s.sesiones[s.actual].investigaciones.C, R = I.integridad || {};
     ok(R.pegados && R.pegados.length === 1 && R.pegados[0].contexto === 'prediccion', 'el intento de pegar queda registrado con su contexto: ' + JSON.stringify(R.pegados));
-    ok(R.salidas && R.salidas.length === 1 && R.salidas[0].contexto === 'prediccion' && R.salidas[0].segundos >= 1, 'la salida de la app durante la predicción queda registrada: ' + JSON.stringify(R.salidas));
+    ok(R.salidas && R.salidas.length === 2 && R.salidas.every(s => s.contexto === 'prediccion') && R.salidas[1].segundos >= 3, 'la salida de la app durante la predicción queda registrada: ' + JSON.stringify(R.salidas));
     ok(R.copias && R.copias.length === 1 && /^pregunta:/.test(R.copias[0].contexto), 'copiar el enunciado queda registrado: ' + JSON.stringify(R.copias && R.copias[0] && R.copias[0].contexto));
     ok(I.predicciones[0].escritura && I.predicciones[0].escritura.caracteres > 0, 'se mide cómo se escribió la justificación') }
   for (let i = 0; i < 6 && q('.pregunta'); i++) {

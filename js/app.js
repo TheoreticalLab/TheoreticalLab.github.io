@@ -12,7 +12,7 @@ import { dibujarGrafica } from './graficas.js';
 import { aplicarMarca } from './marca.js';
 import { CONFIG } from './config.js';
 import { envioActivo, enviarAlProfesor } from './envio.js';
-import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar } from './integridad.js';
+import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar, alVolverApp } from './integridad.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -30,6 +30,17 @@ const confirmar = t => { silenciar(); const r = confirm(t); silenciar(); return 
 instalarIntegridad(); configurarIntegridad({ aviso: t => aviso(t, 'am') });
 let tGuardar = null; alCambiar(() => { clearTimeout(tGuardar); tGuardar = setTimeout(guardar, 400) });
 const AVISO_INTEGRIDAD = 'Esta actividad registra, y tu profesor lo verá: si sales de la app mientras hay una pregunta, predicción o conclusión abierta; si copias enunciados; y cómo escribes tus respuestas. Pegar texto en las respuestas está desactivado.';
+/* Recordatorio ético al volver a la app: franja fija (no redibuja la pantalla, así no se pierde lo que estaba escribiendo). */
+const CONTEXTO_TXT = c => c === 'prediccion' ? 'tu predicción' : c === 'conclusion' ? 'tu conclusión' : 'una pregunta';
+alVolverApp(x => {
+  let el = $('avisoEtico');
+  if (!el) { el = document.createElement('div'); el.id = 'avisoEtico'; el.className = 'aviso-etico'; el.setAttribute('role', 'alert'); document.body.appendChild(el) }
+  el.innerHTML = `<div><b>Saliste de la app y volviste a entrar</b> mientras respondías ${CONTEXTO_TXT(x.contexto)} (${n(x.segundos, 0)} s${x.veces >= 3 ? `; ${x.veces}.ª vez` : ''}). Queda registrado para tu profesor.
+    <br>Te recordamos las reglas éticas: el trabajo es <b>individual</b>; responde <b>sin IA ni ayuda externa</b>; razona con <b>tus propias mediciones</b>. Reconocer lo que no sabes también cuenta en la nota.</div>
+    <button type="button" class="btn chico" id="bCerrarEtico">Entendido</button>`;
+  el.hidden = false
+});
+document.addEventListener('click', e => { if (e.target.id === 'bCerrarEtico') $('avisoEtico').hidden = true });
 const msg = () => { if (!ui.mensaje) return ''; const m = ui.mensaje; ui.mensaje = null; return `<div class="aviso ${m.tipo}" role="status">${esc(m.txt)}</div>` };
 
 /* ---------------- navegación y cabecera ---------------- */

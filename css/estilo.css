@@ -130,4 +130,7 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 .cats { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; max-width: 460px }
 .cats div:nth-child(even) { font-family: var(--mono); font-weight: 700; text-align: right }
 .oculto { display: none }
+.aviso-etico { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 40; width: min(640px, calc(100% - 16px)); display: flex; gap: 12px; align-items: flex-start;
+  background: var(--avisof); color: var(--texto); border: 2px solid var(--aviso); border-radius: 12px; padding: 12px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .18) }
+.aviso-etico .btn { flex: none }
 .marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }

@@ -25,10 +25,13 @@ function terminaSalida() {
   const dur = Math.round((Date.now() - s.inicio) / 100) / 10; if (dur < 1) return;   // parpadeos de foco de menos de 1 s no cuentan
   if (s.contexto) R.salidas.push({ hora: new Date(s.inicio).toISOString(), segundos: dur, contexto: s.contexto, motivo: s.motivo });
   else R.salidasOtras++;
-  onCambio()
+  onCambio();
+  if (s.contexto && dur >= 3) alVolver({ segundos: dur, contexto: s.contexto, veces: R.salidas.length })
 }
-let onCambio = () => { };
+let onCambio = () => { }, alVolver = () => { };
 export function alCambiar(f) { onCambio = f }
+/** Al volver a la app tras salir ≥ 3 s con una pregunta, predicción o conclusión abierta. */
+export function alVolverApp(f) { alVolver = f }
 
 /** Resumen de cómo se escribió un campo (se adjunta a la respuesta guardada) y lo reinicia. */
 export function medirEscritura(id, texto) {
