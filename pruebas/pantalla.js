@@ -74,6 +74,12 @@ try {
     ok(R.inserciones && R.inserciones.length === 1 && R.inserciones[0].bloqueada, 'la inserción de golpe queda registrada');
     ok(R.copias && R.copias.length === 1 && /^pregunta:/.test(R.copias[0].contexto), 'copiar el enunciado queda registrado: ' + JSON.stringify(R.copias && R.copias[0] && R.copias[0].contexto));
     ok(I.predicciones[0].escritura && I.predicciones[0].escritura.caracteres > 0, 'se mide cómo se escribió la justificación') }
+  // guía del estudiante: enlace en el pie; abrirla se anota con su motivo y al volver solo hay un aviso breve
+  { const a = q('#pie [data-guia]'); ok(!!a && /manual_estudiante\.pdf$/.test(a.getAttribute('href')), 'enlace a la guía del estudiante en el pie');
+    D.addEventListener('click', e => e.preventDefault(), { once: true }); a.dispatchEvent(new W.MouseEvent('click', { bubbles: true, cancelable: true }));
+    W.dispatchEvent(new W.Event('blur')); await dormir(1300); W.dispatchEvent(new W.Event('focus')); await dormir(600);
+    const s = JSON.parse(W.localStorage.getItem('laboratorio-mas-v1')), R = s.sesiones[s.actual].investigaciones.C.integridad;
+    ok(R.salidas.length === 2 && R.salidas[1].motivo === 'abrió la guía del estudiante' && (!$('avisoEtico') || $('avisoEtico').hidden) && /guía/.test($('toast').textContent), 'abrir la guía se registra como tal y no muestra el mensaje ético: ' + JSON.stringify(R.salidas[1])) }
   for (let i = 0; i < 6 && q('.pregunta'); i++) {
     const num = $('respNum'); if (num) await escribe(num, '3'); const op = q('input[name="resp"]'); if (op) { op.checked = true } const tx = $('respTxt'); if (tx) await escribe(tx, 'Lo justifico con mis mediciones.');
     await clic('bResponder'); if ($('bSeguir')) await clic('bSeguir')

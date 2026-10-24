@@ -57,6 +57,7 @@ h3 { font-size: 15px; margin: 14px 0 6px }
 .btn.prim:disabled, .btn:disabled { opacity: .45; cursor: default }
 .btn.peligro { border-color: var(--mal); color: var(--mal) }
 .btn.chico { min-height: 32px; padding: 4px 10px; font-size: 14px }
+a.btn { display: inline-flex; align-items: center; gap: 4px; text-decoration: none; color: inherit }
 label.campo { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--suave); min-width: 0 }
 label.campo > span { font-weight: 600 }
 input[type=text], input[type=number], input:not([type]), select, textarea { background: var(--panel); border: 1px solid var(--borde); border-radius: 10px; padding: 9px 11px; color: var(--texto); min-height: 42px; width: 100% }
@@ -149,5 +150,6 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 .emergente-caja .btn { width: 100% }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 45; background: var(--texto); color: var(--panel); border-radius: 10px; padding: 10px 14px; font-size: 14px; width: max-content; max-width: calc(100% - 24px); box-shadow: 0 6px 20px rgba(0, 0, 0, .25) }
 .pie { max-width: 1080px; margin: 0 auto; padding: 4px 16px 24px; text-align: center; font-size: 13px; color: var(--suave) }
+.pie a { color: var(--acento) }
 @media (max-width: 760px) { .pie { padding-bottom: 96px } }
 .marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }

@@ -19,7 +19,7 @@ let onCambio = () => { }, alVolver = () => { };
 
 export function configurarIntegridad(o) { if (o.aviso) aviso = o.aviso }
 export function alCambiar(f) { onCambio = f }
-/** Al volver a la app (mensaje emergente): recibe {segundos, contexto, pantalla, veces}. */
+/** Al volver a la app (mensaje emergente): recibe {segundos, contexto, pantalla, veces, motivo}. */
 export function alVolverApp(f) { alVolver = f }
 /** Investigación activa (y su identificador), contexto sensible ('pregunta:<id>', 'prediccion', 'conclusion' o null) y pantalla. */
 export function fijarContexto(i, c, p = '', id = '') {
@@ -28,11 +28,16 @@ export function fijarContexto(i, c, p = '', id = '') {
 }
 /** Ignorar la pérdida de foco que provocan los diálogos propios (confirmar). */
 export function silenciar(ms = 800) { silencioHasta = Date.now() + ms }
+/** El estudiante abre la guía (PDF en otra pestaña): la salida se registra igual, pero con ese motivo. */
+let haciaGuia = 0;
+export function vaAGuia() { haciaGuia = Date.now() + 3000 }
+export const MOTIVO_GUIA = 'abrió la guía del estudiante';
 
 const guardaPendiente = s => { try { if (s) localStorage.setItem(CLAVE_SALIDA, JSON.stringify({ ...s, id: idInv })); else localStorage.removeItem(CLAVE_SALIDA) } catch (e) { } };
 function empiezaSalida(motivo) {
   // solo cuenta después de que el estudiante haya interactuado en esta carga de la página (abrir y cerrar sin tocar nada no es trabajar)
   if (salida || !interactuo || Date.now() < silencioHasta || !inv || inv.conclusion) return;
+  if (Date.now() < haciaGuia) { motivo = MOTIVO_GUIA; haciaGuia = 0 }
   salida = { inicio: Date.now(), contexto, pantalla, motivo }; guardaPendiente(salida)
 }
 function terminaSalida(s = salida) {
@@ -40,7 +45,7 @@ function terminaSalida(s = salida) {
   const dur = Math.round((Date.now() - s.inicio) / 100) / 10; if (dur < MIN_SALIDA_S) return;
   R.salidas.push({ hora: new Date(s.inicio).toISOString(), segundos: dur, contexto: s.contexto || null, pantalla: s.pantalla || '', motivo: s.motivo, sensible: !!s.contexto });
   onCambio();
-  alVolver({ segundos: dur, contexto: s.contexto, pantalla: s.pantalla, veces: R.salidas.length })
+  alVolver({ segundos: dur, contexto: s.contexto, pantalla: s.pantalla, veces: R.salidas.length, motivo: s.motivo })
 }
 // la página se cerró (o el sistema la descartó) estando fuera: se cierra la salida al reabrir la misma investigación
 function recuperarSalidaPendiente() {

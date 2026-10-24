@@ -13,7 +13,7 @@ import { aplicarMarca } from './marca.js';
 import { CIENTIFICO_SVG } from './cientifico.js';
 import { CONFIG } from './config.js';
 import { envioActivo, enviarAlProfesor } from './envio.js';
-import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar, alVolverApp } from './integridad.js';
+import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar, alVolverApp, vaAGuia, MOTIVO_GUIA } from './integridad.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -37,6 +37,7 @@ const AVISO_INTEGRIDAD = 'Esta actividad registra, y tu profesor lo verá, cada 
 const CONTEXTO_TXT = c => c === 'prediccion' ? ' mientras escribías tu predicción' : c === 'conclusion' ? ' mientras redactabas tu conclusión' : c ? ' mientras respondías una pregunta' : '';
 let focoAntes = null;
 alVolverApp(x => {
+  if (String(x.motivo || '').startsWith(MOTIVO_GUIA)) return toast(`Has vuelto de la guía (${n(x.segundos, 0)} s fuera). Queda anotado en tu registro.`);
   let el = $('avisoEtico');
   if (!el) { el = document.createElement('div'); el.id = 'avisoEtico'; el.className = 'emergente'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'tEtico'); document.body.appendChild(el) }
   el.innerHTML = `<div class="emergente-caja">${CIENTIFICO_SVG}<h2 id="tEtico">Has salido de la app y has vuelto a entrar</h2>
@@ -46,6 +47,10 @@ alVolverApp(x => {
   focoAntes = document.activeElement; el.hidden = false; silenciar(); $('bCerrarEtico').focus()
 });
 document.addEventListener('click', e => { if (e.target.id === 'bCerrarEtico') { $('avisoEtico').hidden = true; if (focoAntes && focoAntes.focus) try { focoAntes.focus() } catch (x) { } } });
+// guía del estudiante (PDF): enlace en el inicio y en el pie de todas las pantallas
+const GUIA = 'manual/manual_estudiante.pdf';
+const enlaceGuia = (cls = 'btn chico') => `<a class="${cls}" href="${GUIA}" target="_blank" rel="noopener" data-guia>📘 Guía del estudiante (PDF)</a>`;
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('[data-guia]')) vaAGuia() }, true);
 const msg = () => { if (!ui.mensaje) return ''; const m = ui.mensaje; ui.mensaje = null; return `<div class="aviso ${m.tipo}" role="status">${esc(m.txt)}</div>` };
 
 /* ---------------- navegación y cabecera ---------------- */
@@ -88,7 +93,8 @@ function pInicio() {
     <li>Las preguntas de la investigación dependen de lo que midas y respondas.</li>
     <li><b>Registro de integridad:</b> se anota si sales de la app mientras respondes y si copias enunciados; pegar texto en las respuestas está desactivado.</li>
     <li>Terminarás con una de tres conclusiones: <b>compatible</b>, <b>incompatible</b> o <b>evidencia insuficiente</b>. Reconocer los límites de tus datos es parte de la nota.</li></ul>
-    <p class="suave peq">Tu progreso se guarda solo en este navegador. Al final descarga el informe y entrégalo a tu profesor.</p></div>`;
+    <p class="suave peq">Tu progreso se guarda solo en este navegador. Al final descarga el informe y entrégalo a tu profesor.</p>
+    <p>${enlaceGuia()} <span class="suave peq">Cómo funciona la app, paso a paso.</span></p></div>`;
   if (!ses) {
     el.innerHTML = msg() + mision + `<div class="rejilla"><div class="tarjeta"><h2>Nueva investigación</h2>
       <label class="campo"><span>Tu nombre o alias (aparecerá en el informe)</span><input id="alias" maxlength="60" autocomplete="nickname"></label>
@@ -331,5 +337,5 @@ document.addEventListener('click', e => {
 });
 
 { const h = location.hash.slice(1); if (inv() && ['laboratorio', 'instrumentos', 'investigacion', 'informe'].includes(h)) pantalla = h }
-if ($('pie')) $('pie').textContent = ['Laboratorio MAS', CONFIG.profesor, CONFIG.asignatura].filter(Boolean).join(' · ');
+if ($('pie')) $('pie').innerHTML = esc(['Laboratorio MAS', CONFIG.profesor, CONFIG.asignatura].filter(Boolean).join(' · ')) + ' · ' + enlaceGuia('');
 pintar();
