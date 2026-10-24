@@ -153,12 +153,12 @@ El navegador aísla la página por diseño.
 
 | Medida | Detalle |
 |---|---|
-| **Pegado bloqueado** | En predicciones, respuestas, notas de hipótesis, revisiones y justificación final. Cada intento queda registrado. Sí se puede pegar en alias, identificador y código de clase |
-| **Salidas de la app** | Cambio de app o pestaña, o pérdida de foco de la ventana durante ≥ 1 s mientras hay una pregunta, una predicción pendiente o la conclusión abierta. Se guarda el contexto exacto («pregunta pred-calculo», «predicción», «conclusión») y la duración. Las salidas en otros momentos solo se cuentan |
+| **Pegado bloqueado en toda la app** | Pegar o arrastrar texto no funciona en ningún campo (también alias, identificador y código de clase). Además, si entra de una vez un bloque de texto que no se teclea así (≥ 12 caracteres con espacios, o ≥ 25), se deshace: es lo que hace el portapapeles del teclado del móvil cuando no avisa como «pegar». **Efecto secundario:** el dictado por voz de frases enteras también se bloquea. Cada intento queda registrado |
+| **Salidas de la app** | Cada cambio de app o pestaña, o pérdida de foco de la ventana durante ≥ 1 s, con un experimento abierto y sin entregar. Se guarda la pantalla, la duración y, si había una pregunta, una predicción o la conclusión abierta, ese contexto exacto. Si el sistema cierra la página mientras está fuera (Android lo hace), la salida se recupera al reabrirla |
 | **Copias de texto** | Especialmente de enunciados de preguntas |
 | **Inserciones grandes de golpe** | ≥ 20 caracteres en una sola operación (portapapeles del teclado, dictado, autocompletar) |
 | **Cómo se escribió cada respuesta** | Caracteres, segundos y texto insertado de golpe. Se marcan las respuestas de ≥ 80 caracteres escritas a más de 8 caracteres por segundo |
-| **Recordatorio ético** | Al volver tras salir ≥ 3 s con una pregunta, predicción o conclusión abierta, aparece arriba una franja: «Saliste de la app y volviste a entrar… Te recordamos las reglas éticas: trabajo individual, sin IA ni ayuda externa, con tus propias mediciones». Indica cuántas veces desde la 3.ª. No redibuja la pantalla, así que no se pierde lo que estaba escribiendo |
+| **Mensaje emergente al volver** | Tras cada salida aparece una ventana centrada: «Has salido de la app y has vuelto a entrar. Nuestro sistema lo ha detectado y lo ha registrado para tu profesor (X s fuera, mientras respondías…, n.ª vez). Te recordamos las reglas éticas: trabajo individual, sin IA ni ayuda externa, con tus propias mediciones», con el botón «Entendido, sigo con mi trabajo». No redibuja la pantalla, así que no se pierde lo que estaba escribiendo |
 | **Marca de agua** | Identificador y alias en diagonal sobre las pantallas con datos y en el informe HTML: las capturas son rastreables |
 
 **Dónde lo ves:**

@@ -10,13 +10,13 @@ import { resumenIntegridad } from './integridad.js';
 export function htmlIntegridad(inv) {
   const r = resumenIntegridad(inv), R = inv.integridad || { salidas: [], copias: [], pegados: [], inserciones: [] }, f = s => { try { return new Date(s).toLocaleString('es') } catch (e) { return s } };
   const ctx = c => !c ? '—' : c === 'prediccion' ? 'predicción' : c === 'conclusion' ? 'conclusión' : c.startsWith('pregunta:') ? 'pregunta «' + c.slice(9) + '»' : c;
-  const ev = [...R.salidas.map(s => ({ h: s.hora, t: `Salió de la app ${String(s.segundos).replace('.', ',')} s durante ${ctx(s.contexto)} (${s.motivo})` })),
+  const ev = [...R.salidas.map(s => ({ h: s.hora, t: `Salió de la app ${String(s.segundos).replace('.', ',')} s ${s.contexto ? 'durante ' + ctx(s.contexto) : 'desde la pantalla ' + (s.pantalla || '—')} (${s.motivo})` })),
     ...R.copias.map(c => ({ h: c.hora, t: `Copió ${c.caracteres} caracteres${c.contexto ? ' durante ' + ctx(c.contexto) : ''}: «${c.inicio}${c.caracteres > 80 ? '…' : ''}»` })),
     ...R.pegados.map(p => ({ h: p.hora, t: `Intentó ${p.como} ${p.caracteres} caracteres en «${p.campo}» (bloqueado)` })),
     ...R.inserciones.map(p => ({ h: p.hora, t: `Inserción de ${p.caracteres} caracteres de golpe en «${p.campo}» (${p.tipo})` }))].sort((a, b) => a.h < b.h ? -1 : 1);
   return `<table><tr><th>Señal</th><th>Valor</th></tr>
     <tr><td>Salidas de la app durante preguntas, predicciones o la conclusión</td><td>${r.salidasDurantePreguntas} (${r.segundosFuera} s en total; la más larga, ${String(r.salidaMasLarga).replace('.', ',')} s)</td></tr>
-    <tr><td>Salidas en otros momentos (navegando por la app)</td><td>${r.salidasEnOtrosMomentos}</td></tr>
+    <tr><td>Salidas en otros momentos (con el experimento abierto, sin pregunta en curso)</td><td>${r.salidasEnOtrosMomentos}</td></tr>
     <tr><td>Copias de texto (de enunciados de preguntas)</td><td>${r.copiasDeTexto} (${r.copiasDeEnunciados})</td></tr>
     <tr><td>Intentos de pegar (bloqueados)</td><td>${r.intentosDePegar}</td></tr><tr><td>Inserciones grandes de golpe</td><td>${r.insercionesGrandes}</td></tr>
     <tr><td>Respuestas largas escritas a más de 8 caracteres por segundo</td><td>${r.respuestasEscritasMuyRapido}</td></tr></table>

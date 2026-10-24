@@ -27,20 +27,24 @@ const guardar = () => { if (ses && !guardarSesion(ses)) aviso('No se pudo guarda
 const aviso = (txt, tipo = 'info') => { ui.mensaje = { txt, tipo }; pintar() };
 // diálogos propios: la pérdida de foco que provocan no cuenta como «salir de la app»
 const confirmar = t => { silenciar(); const r = confirm(t); silenciar(); return r };
-instalarIntegridad(); configurarIntegridad({ aviso: t => aviso(t, 'am') });
+// notificación flotante que NO redibuja la pantalla (no se pierde lo que se estaba escribiendo)
+const toast = t => { let el = $('toast'); if (!el) { el = document.createElement('div'); el.id = 'toast'; el.className = 'toast'; el.setAttribute('role', 'status'); document.body.appendChild(el) } el.textContent = t; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => { el.hidden = true }, 4500) };
+instalarIntegridad(); configurarIntegridad({ aviso: toast });
 let tGuardar = null; alCambiar(() => { clearTimeout(tGuardar); tGuardar = setTimeout(guardar, 400) });
-const AVISO_INTEGRIDAD = 'Esta actividad registra, y tu profesor lo verá: si sales de la app mientras hay una pregunta, predicción o conclusión abierta; si copias enunciados; y cómo escribes tus respuestas. Pegar texto en las respuestas está desactivado.';
-/* Recordatorio ético al volver a la app: franja fija (no redibuja la pantalla, así no se pierde lo que estaba escribiendo). */
-const CONTEXTO_TXT = c => c === 'prediccion' ? 'tu predicción' : c === 'conclusion' ? 'tu conclusión' : 'una pregunta';
+const AVISO_INTEGRIDAD = 'Esta actividad registra, y tu profesor lo verá, cada vez que sales de la app (y si estabas respondiendo), si copias enunciados y cómo escribes tus respuestas. Pegar texto está desactivado en toda la app.';
+/* Mensaje emergente al volver a la app (ventana superpuesta: no redibuja la pantalla, así no se pierde lo que se escribía). */
+const CONTEXTO_TXT = c => c === 'prediccion' ? ' mientras escribías tu predicción' : c === 'conclusion' ? ' mientras redactabas tu conclusión' : c ? ' mientras respondías una pregunta' : '';
+let focoAntes = null;
 alVolverApp(x => {
   let el = $('avisoEtico');
-  if (!el) { el = document.createElement('div'); el.id = 'avisoEtico'; el.className = 'aviso-etico'; el.setAttribute('role', 'alert'); document.body.appendChild(el) }
-  el.innerHTML = `<div><b>Saliste de la app y volviste a entrar</b> mientras respondías ${CONTEXTO_TXT(x.contexto)} (${n(x.segundos, 0)} s${x.veces >= 3 ? `; ${x.veces}.ª vez` : ''}). Queda registrado para tu profesor.
-    <br>Te recordamos las reglas éticas: el trabajo es <b>individual</b>; responde <b>sin IA ni ayuda externa</b>; razona con <b>tus propias mediciones</b>. Reconocer lo que no sabes también cuenta en la nota.</div>
-    <button type="button" class="btn chico" id="bCerrarEtico">Entendido</button>`;
-  el.hidden = false
+  if (!el) { el = document.createElement('div'); el.id = 'avisoEtico'; el.className = 'emergente'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'tEtico'); document.body.appendChild(el) }
+  el.innerHTML = `<div class="emergente-caja"><h2 id="tEtico">Has salido de la app y has vuelto a entrar</h2>
+    <p>Nuestro sistema lo ha detectado y lo ha registrado para tu profesor: ${n(x.segundos, 0)} s fuera${CONTEXTO_TXT(x.contexto)}${x.veces > 1 ? ` · ${x.veces}.ª vez` : ''}.</p>
+    <p><b>Te recordamos las reglas éticas:</b></p><ul><li>El trabajo es <b>individual</b>.</li><li>Responde <b>sin IA ni ayuda externa</b>.</li><li>Razona con <b>tus propias mediciones</b>: reconocer lo que no sabes también cuenta en la nota.</li></ul>
+    <p><button type="button" class="btn prim" id="bCerrarEtico">Entendido, sigo con mi trabajo</button></p></div>`;
+  focoAntes = document.activeElement; el.hidden = false; silenciar(); $('bCerrarEtico').focus()
 });
-document.addEventListener('click', e => { if (e.target.id === 'bCerrarEtico') $('avisoEtico').hidden = true });
+document.addEventListener('click', e => { if (e.target.id === 'bCerrarEtico') { $('avisoEtico').hidden = true; if (focoAntes && focoAntes.focus) try { focoAntes.focus() } catch (x) { } } });
 const msg = () => { if (!ui.mensaje) return ''; const m = ui.mensaje; ui.mensaje = null; return `<div class="aviso ${m.tipo}" role="status">${esc(m.txt)}</div>` };
 
 /* ---------------- navegación y cabecera ---------------- */
@@ -66,7 +70,7 @@ function pintar() {
       else if (pantalla === 'instrumentos' && I.pendiente && I.pendiente.requiere) c = 'prediccion';
       else if (pantalla === 'informe' && I.borrador) c = 'conclusion'
     }
-    fijarContexto(I, c)
+    fijarContexto(I, c, pantalla, I ? ses.id + '|' + I.letra : '')
   }
   for (const p of ['inicio', 'laboratorio', 'instrumentos', 'investigacion', 'informe']) $('p-' + p).hidden = p !== pantalla;
   ({ inicio: pInicio, laboratorio: pLab, instrumentos: pInstr, investigacion: pInv, informe: pInforme })[pantalla]();

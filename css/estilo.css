@@ -130,7 +130,9 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 .cats { display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; max-width: 460px }
 .cats div:nth-child(even) { font-family: var(--mono); font-weight: 700; text-align: right }
 .oculto { display: none }
-.aviso-etico { position: fixed; top: 8px; left: 50%; transform: translateX(-50%); z-index: 40; width: min(640px, calc(100% - 16px)); display: flex; gap: 12px; align-items: flex-start;
-  background: var(--avisof); color: var(--texto); border: 2px solid var(--aviso); border-radius: 12px; padding: 12px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .18) }
-.aviso-etico .btn { flex: none }
+.emergente { position: fixed; inset: 0; z-index: 50; background: rgba(10, 14, 20, .55); display: flex; align-items: center; justify-content: center; padding: 16px }
+.emergente-caja { background: var(--panel); color: var(--texto); border: 2px solid var(--aviso); border-radius: 16px; padding: 20px; width: min(520px, 100%); max-height: 90vh; overflow: auto; box-shadow: 0 12px 40px rgba(0, 0, 0, .3) }
+.emergente-caja h2 { color: var(--aviso) }
+.emergente-caja .btn { width: 100% }
+.toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 45; background: var(--texto); color: var(--panel); border-radius: 10px; padding: 10px 14px; font-size: 14px; width: max-content; max-width: calc(100% - 24px); box-shadow: 0 6px 20px rgba(0, 0, 0, .25) }
 .marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }
