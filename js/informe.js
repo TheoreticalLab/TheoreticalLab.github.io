@@ -5,6 +5,7 @@ import { HIPOTESIS } from './pedagogia.js';
 import { evaluar } from './evaluacion.js';
 import { urlMarca, textoMarca } from './marca.js';
 import { resumenIntegridad } from './integridad.js';
+import { CONFIG } from './config.js';
 
 /** Sección «Registro de integridad» (HTML) para el informe y la herramienta docente. Describe señales; no juzga. */
 export function htmlIntegridad(inv) {
@@ -40,7 +41,7 @@ export function informeJSON(ses, letra) {
   return {
     app: 'laboratorio-mas', formato: 1, generado: new Date().toISOString(),
     reproduccion: { identificador: ses.id, experimento: letra, versionMotor: VERSION_MOTOR, nota: 'Con el identificador y la letra se regeneran exactamente los parámetros, el modelo y cada medición (ver GUIA_DOCENTE.md).' },
-    estudiante: ses.alias, creada: ses.creada, nominal: e.nominal, incertidumbres: e.sigma, creditosIniciales: CREDITOS, ventanaS: T_MAX,
+    estudiante: ses.alias, profesor: CONFIG.profesor || '', asignatura: CONFIG.asignatura || '', creada: ses.creada, nominal: e.nominal, incertidumbres: e.sigma, creditosIniciales: CREDITOS, ventanaS: T_MAX,
     investigacion: inv, evaluacionProvisional: evaluar(ses, inv)
   }
 }
@@ -63,7 +64,7 @@ export function informeHTML(ses, letra) {
   return `<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Informe ${esc(ses.id)} · experimento ${esc(letra)}</title>
 <style>body{font:15px/1.5 system-ui,sans-serif;max-width:980px;margin:24px auto;padding:0 16px;color:#1b1f24;background:#fff}h1{font-size:22px}h2{font-size:17px;margin-top:28px;border-bottom:1px solid #ddd;padding-bottom:4px}table{border-collapse:collapse;width:100%;font-size:13px}td,th{border:1px solid #ddd;padding:4px 6px;vertical-align:top;text-align:left}th{background:#f3f4f6}.k{display:grid;grid-template-columns:220px 1fr;gap:2px 12px}.nota{font-size:28px;font-weight:700}small{color:#666}@media print{h2{break-after:avoid}}body{background-image:${urlMarca(textoMarca(ses)).replace(/</g, '%3C')};-webkit-print-color-adjust:exact;print-color-adjust:exact}</style></head><body>
 <h1>Informe de investigación · Laboratorio MAS</h1>
-<div class="k"><b>Identificador de la sesión</b><span>${esc(ses.id)}</span><b>Estudiante (alias)</b><span>${esc(ses.alias || '—')}</span><b>Fecha de inicio</b><span>${esc(fecha(inv.iniciada))}</span><b>Informe generado</b><span>${esc(fecha(new Date().toISOString()))}</span><b>Experimento</b><span>${esc(letra)}</span>
+<div class="k">${CONFIG.profesor ? `<b>Profesor</b><span>${esc(CONFIG.profesor)}</span>` : ''}${CONFIG.asignatura ? `<b>Asignatura</b><span>${esc(CONFIG.asignatura)}</span>` : ''}<b>Identificador de la sesión</b><span>${esc(ses.id)}</span><b>Estudiante (alias)</b><span>${esc(ses.alias || '—')}</span><b>Fecha de inicio</b><span>${esc(fecha(inv.iniciada))}</span><b>Informe generado</b><span>${esc(fecha(new Date().toISOString()))}</span><b>Experimento</b><span>${esc(letra)}</span>
 <b>Parámetros nominales</b><span>m = ${num(e.nominal.m)} kg · k = ${num(e.nominal.k)} N/m · A = ${num(e.nominal.A)} m · x(0) = A, v(0) = 0</span><b>Créditos usados</b><span>${CREDITOS - inv.creditos} de ${CREDITOS}</span>
 <b>Reproducción</b><span>identificador ${esc(ses.id)} + experimento ${esc(letra)} (motor v${VERSION_MOTOR})</span></div>
 <h2>Hipótesis</h2><p>Valoración final:</p><ul>${hipActual}</ul>${filasHip ? `<p>Cambios de hipótesis (en orden):</p><table><tr><th>Fecha</th><th>Hipótesis</th><th>Cambio</th><th>Nota y evidencia</th></tr>${filasHip}</table>` : '<p>Sin cambios registrados.</p>'}
@@ -75,6 +76,7 @@ ${interp ? `<h2>Revisiones de interpretación</h2><ul>${interp}</ul>` : ''}
 <h2>Registro de integridad</h2>${htmlIntegridad(inv)}
 <h2>Calificación provisional (automática)</h2><p class="nota">${ev.total} / 100</p><table><tr><th>Criterio</th><th>Puntos</th></tr>${cats.map(([k, t]) => `<tr><td>${t}</td><td>${ev.categorias[k]} / 20</td></tr>`).join('')}</table>
 <p><small>Provisional: los textos razonados (${ev.pendienteDocente.length}) requieren revisión docente. La nota automática no interpreta el contenido de los textos.</small></p>
+<p style="text-align:center;margin-top:32px"><small>${esc(['Laboratorio MAS', CONFIG.profesor, CONFIG.asignatura].filter(Boolean).join(' · '))}</small></p>
 </body></html>`
 }
 

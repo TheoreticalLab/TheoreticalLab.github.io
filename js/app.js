@@ -81,7 +81,7 @@ function pintar() {
 /* ---------------- 1. INICIO ---------------- */
 function pInicio() {
   const el = $('p-inicio'), guardadas = listarSesiones();
-  const mision = `<div class="tarjeta"><h1>¿Es un movimiento armónico simple?</h1>
+  const mision = `<div class="tarjeta"><h1>¿Es un movimiento armónico simple?</h1>${CONFIG.profesor ? `<p class="suave peq" style="margin-top:-6px">${esc(CONFIG.asignatura ? CONFIG.asignatura + ' · ' : '')}Prof. ${esc(CONFIG.profesor)}</p>` : ''}
     <p>Tienes seis experimentos (A, B, C, D, E, I) con un bloque unido a un resorte horizontal. El bloque se suelta desde x = A sin velocidad. Tu misión en cada uno: <b>decidir, con mediciones y razonamiento, si su movimiento es compatible con el MAS ideal</b> que predicen los parámetros nominales.</p>
     <ul class="suave"><li>Tienes <b>${CREDITOS} créditos</b> por experimento: cada medición cuesta; elige las que más informan.</li>
     <li>Antes de cada medición nueva, <b>registras tu predicción</b> según el MAS ideal. Queda fijada.</li>
@@ -331,4 +331,5 @@ document.addEventListener('click', e => {
 });
 
 { const h = location.hash.slice(1); if (inv() && ['laboratorio', 'instrumentos', 'investigacion', 'informe'].includes(h)) pantalla = h }
+if ($('pie')) $('pie').textContent = ['Laboratorio MAS', CONFIG.profesor, CONFIG.asignatura].filter(Boolean).join(' · ');
 pintar();

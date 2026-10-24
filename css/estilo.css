@@ -35,7 +35,7 @@ nav.pest button:disabled { opacity: .4; cursor: default }
 @media (max-width: 760px) {
   nav.pest { position: fixed; bottom: 0; left: 0; right: 0; top: auto; border-top: 1px solid var(--borde); border-bottom: 0; z-index: 20; padding: 6px 4px calc(6px + env(safe-area-inset-bottom)) }
   nav.pest button { font-size: 11px; padding: 6px 2px }
-  main { padding-bottom: 90px !important }
+  main { padding-bottom: 8px !important }
   .cab { position: static }
 }
 main { max-width: 1080px; margin: 0 auto; padding: 16px }
@@ -148,4 +148,6 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 @media (prefers-reduced-motion: reduce) { .cientifico * { animation: none !important } }
 .emergente-caja .btn { width: 100% }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 45; background: var(--texto); color: var(--panel); border-radius: 10px; padding: 10px 14px; font-size: 14px; width: max-content; max-width: calc(100% - 24px); box-shadow: 0 6px 20px rgba(0, 0, 0, .25) }
+.pie { max-width: 1080px; margin: 0 auto; padding: 4px 16px 24px; text-align: center; font-size: 13px; color: var(--suave) }
+@media (max-width: 760px) { .pie { padding-bottom: 96px } }
 .marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }

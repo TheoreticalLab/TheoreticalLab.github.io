@@ -22,6 +22,7 @@ const escribe = async (el, v) => {
 const pega = async (el, texto) => { const dt = new W.DataTransfer(); dt.setData('text/plain', texto); const ev = new W.ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }); el.dispatchEvent(ev); await dormir(40); return ev.defaultPrevented };
 try {
   ok(!!$('bNueva'), 'inicio sin sesión: formulario de nueva investigación');
+  ok(/Francisco Orbe/.test($('pie').textContent) && /Prof\. Francisco Orbe/.test($('p-inicio').textContent), 'nombre del profesor en el pie y en el inicio');
   ok(await pega($('alias'), 'Ana Pérez') && $('alias').value === '', 'pegar también está bloqueado en el alias (en toda la app)');
   await escribe('alias', 'Prueba E2E'); await clic('bNueva');
   ok(/MAS-[A-Z0-9]{4}-[A-Z0-9]{4}/.test($('cabSesion').textContent), 'se crea un identificador: ' + $('cabSesion').textContent);

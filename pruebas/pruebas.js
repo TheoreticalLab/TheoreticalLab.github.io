@@ -253,7 +253,8 @@ prueba('El informe del estudiante (HTML y JSON) no revela el modelo oculto y con
   for (const s of sesiones.slice(0, 40)) {
     const h = informeHTML(s.ses, s.inv.letra), j = JSON.stringify(informeJSON(s.ses, s.inv.letra)), d = describirModelo(experimento(s.ses.id, s.inv.letra));
     if (h.includes(d) || j.includes(d) || /"ocultos"|"modelo":"(ideal|frecuencia|amortiguado|duffing|ruido|debil)"/.test(j)) throw new Error('revela el modelo');
-    if (!h.includes(s.ses.id) || !j.includes('"identificador"')) throw new Error('falta reproducción')
+    if (!h.includes(s.ses.id) || !j.includes('"identificador"')) throw new Error('falta reproducción');
+    if (!h.includes('Francisco Orbe') || !j.includes('"profesor":"Francisco Orbe"')) throw new Error('falta el nombre del profesor')
   }
 });
 {
