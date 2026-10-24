@@ -26,8 +26,10 @@ En uno o dos minutos la app queda en `https://<usuario>.github.io/laboratorio-ma
 
 | Para | Enlace |
 |---|---|
-| Estudiantes | `https://<usuario>.github.io/laboratorio-mas/` |
-| Tú | `https://<usuario>.github.io/laboratorio-mas/docente.html` (no está enlazada desde la app) |
+| Estudiantes | `https://theoreticallab.github.io/` |
+| Tú | `https://theoreticallab.github.io/docente.html` (no está enlazada desde la app) |
+
+La app está publicada desde la organización `TheoreticalLab`, en el repositorio `TheoreticalLab.github.io`. Ese nombre de repositorio es el que da la dirección corta, sin `/laboratorio-mas/`, y sin el usuario personal en el enlace.
 
 La guía docente (`GUIA_DOCENTE.md`) está en el repositorio. Si el repositorio es público, un estudiante curioso puede encontrarla. Si prefieres evitarlo, tienes dos opciones:
 

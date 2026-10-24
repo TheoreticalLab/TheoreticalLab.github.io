@@ -126,7 +126,7 @@ No hay búsqueda de palabras clave.
 
 ## 8. Revisión de entregas (`docente.html`)
 
-1. Abre `https://<usuario>.github.io/<repositorio>/docente.html` (no está enlazada).
+1. Abre `https://theoreticallab.github.io/docente.html` (no está enlazada).
 2. Arrastra los JSON de los estudiantes. Por cada uno verás:
    - **el modelo oculto** y las conclusiones defendibles;
    - **la integridad:** cada medición se regenera desde la semilla y debe coincidir exactamente; un valor editado a mano se detecta;

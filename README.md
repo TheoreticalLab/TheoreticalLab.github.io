@@ -1,6 +1,6 @@
 # Laboratorio MAS · investigación masa-resorte
 
-**En línea:** https://orbefrancisco.github.io/laboratorio-mas/
+**En línea:** https://theoreticallab.github.io/
 
 Laboratorio científico adaptativo para Física General. Cada estudiante investiga seis sistemas masa-resorte horizontales (experimentos A, B, C, D, E, I) y decide, con mediciones y razonamiento, si su movimiento es **compatible con el MAS ideal**, **incompatible** o si la **evidencia es insuficiente**.
 
