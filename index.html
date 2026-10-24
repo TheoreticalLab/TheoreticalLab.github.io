@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="description" content="Laboratorio de investigación física: ¿es un movimiento armónico simple? Masa-resorte horizontal con mediciones, predicciones e hipótesis.">
+<meta name="theme-color" content="#2457c5">
+<title>Laboratorio MAS · investigación masa-resorte</title>
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="cab">
+  <div class="marca">Laboratorio <span>MAS</span></div>
+  <span class="chip" id="cabSesion" hidden></span>
+  <span class="chip" id="cabExp" hidden></span>
+  <span class="creditos" id="cabCreditos" hidden></span>
+</header>
+<nav class="pest" aria-label="Secciones">
+  <button type="button" data-p="inicio" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Inicio</button>
+  <button type="button" data-p="laboratorio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12h3l2-5 3 10 3-10 3 10 2-5h4"/></svg>Laboratorio</button>
+  <button type="button" data-p="instrumentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-3M9 2h6"/></svg>Instrumentos</button>
+  <button type="button" data-p="investigacion"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>Investigación</button>
+  <button type="button" data-p="informe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2h9l5 5v15H6z"/><path d="M14 2v6h6M9 13h8M9 17h8"/></svg>Informe</button>
+</nav>
+<main>
+  <section id="p-inicio"></section>
+  <section id="p-laboratorio" hidden></section>
+  <section id="p-instrumentos" hidden></section>
+  <section id="p-investigacion" hidden></section>
+  <section id="p-informe" hidden></section>
+</main>
+<noscript><p style="padding:16px">Este laboratorio necesita JavaScript.</p></noscript>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

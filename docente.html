@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>Revisión docente · Laboratorio MAS</title>
+<link rel="icon" href="icono.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+<header class="cab"><div class="marca">Laboratorio <span>MAS</span> · revisión docente</div></header>
+<main>
+  <div class="tarjeta"><h1>Revisar entregas</h1>
+    <p>Carga (o arrastra) los archivos <b>JSON</b> que te entregaron los estudiantes. Todo se procesa en este navegador: no se envía nada a ningún servidor.</p>
+    <label class="campo"><span>Informes JSON</span><input type="file" id="archivos" accept=".json,application/json" multiple></label>
+    <div id="aviso"></div>
+    <p class="fila"><button class="btn" id="bCsv">Exportar calificaciones (CSV)</button><span class="suave peq">Tus notas y comentarios se guardan en este navegador.</span></p>
+  </div>
+  <div class="tarjeta" id="lista"></div>
+  <div id="detalle"></div>
+  <div class="tarjeta"><h2>Reproducir una sesión desde su identificador</h2><p class="suave peq">Muestra la asignación oculta y los parámetros de los seis experimentos (no lo compartas con los estudiantes).</p>
+    <div class="fila"><input id="repId" placeholder="MAS-XXXX-XXXX" style="max-width:240px" autocapitalize="characters"><button class="btn" id="bReproducir">Mostrar</button></div><div id="repOut" class="tw" style="margin-top:10px"></div></div>
+</main>
+<script type="module" src="js/docente.js"></script>
+</body>
+</html>
