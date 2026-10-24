@@ -2,3 +2,7 @@ pruebas/.perfil_chrome/
 pruebas/.perfil_capturas/
 pruebas/capturas/
 __pycache__/
+manual/*.aux
+manual/*.log
+manual/*.toc
+manual/*.out
