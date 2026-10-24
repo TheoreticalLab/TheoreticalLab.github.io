@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="theme-color" content="#2457c5">
+<meta name="robots" content="noindex">
+<title>Examen virtual · prototipo</title>
+<link rel="icon" href="../icono.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/estilo.css">
+<link rel="stylesheet" href="examen.css">
+</head>
+<body>
+<header class="cab">
+  <div class="marca">Examen <span>virtual</span></div>
+  <span class="chip" id="cabAlumno" hidden></span>
+  <span class="reloj" id="reloj" hidden></span>
+</header>
+<main id="vista"></main>
+<footer class="pie" id="pie"></footer>
+<noscript><p style="padding:16px">Este examen necesita JavaScript.</p></noscript>
+<script type="module" src="examen.js"></script>
+</body>
+</html>

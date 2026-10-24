@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Preparar capturas · examen</title></head>
+<body style="margin:0"><iframe id="app" style="position:fixed;inset:0;width:100%;height:100%;border:0"></iframe>
+<script type="module">
+// Para capturas de pantalla: deja la app en un estado concreto dentro de un iframe a pantalla completa.
+//   preparar.html?modo=entrada | examen | bloqueo | entregado
+const modo = new URLSearchParams(location.search).get('modo') || 'examen', t = Date.now(), f = document.getElementById('app');
+const dormir = ms => new Promise(r => setTimeout(r, ms));
+const E = { v: 1, examen: 'DEMO', nombre: 'Ana Pérez', matricula: '2024-1234', creado: new Date(t).toISOString(), respuestas: {}, actual: 0, salidas: [] };
+if (modo === 'entrada') localStorage.removeItem('examen-prototipo-v1'); else localStorage.setItem('examen-prototipo-v1', JSON.stringify(E));
+if (modo === 'bloqueo') {
+  Object.assign(E, { inicio: t - 7 * 60000, fin: t + 23 * 60000 + 12000, latido: t, actual: 1, respuestas: { 0: '12,4' } });
+  E.salidas.push({ hora: new Date(t - 63000).toISOString(), segundos: 63.2, motivo: 'app oculta', problema: 2, resultado: 'bloqueo' });
+  E.bloqueo = { codigo: 'K7P2', desde: new Date(t - 63000).toISOString(), segundos: 63.2, n: 2, recarga: false, salida: 0 };
+  localStorage.setItem('examen-prototipo-v1', JSON.stringify(E))
+}
+f.src = '../index.html'; await new Promise(r => f.onload = r); await dormir(300);
+const D = f.contentDocument, W = f.contentWindow;
+if (modo === 'examen' || modo === 'entregado') {
+  D.getElementById('bComenzar').click(); await dormir(200);
+  const r = D.getElementById('resp'); if (r) { r.value = '12,4'; r.dispatchEvent(new W.Event('input', { bubbles: true })) }
+  D.getElementById('bSiguiente').click(); await dormir(200);
+  if (modo === 'entregado') { W.dispatchEvent(new W.Event('blur')); await dormir(1500); W.dispatchEvent(new W.Event('focus')); await dormir(200); D.getElementById('bEntregar').click(); await dormir(100); D.getElementById('bConfirmarEntrega').click() }
+}
+</script></body></html>

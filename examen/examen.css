@@ -1,0 +1,34 @@
+/* Examen virtual: se apoya en ../css/estilo.css (colores, tarjetas, botones, ventanas emergentes) */
+main { max-width: 760px }
+.reloj { font-family: var(--mono); font-weight: 800; font-size: 18px; background: var(--chip); border-radius: 999px; padding: 2px 12px }
+.reloj.poco { background: var(--malf); color: var(--mal) }
+.demo { background: var(--avisof); color: var(--aviso); border-radius: 10px; padding: 8px 12px; font-size: 14px; margin-bottom: 14px }
+.campo { display: grid; gap: 4px; margin-bottom: 12px }
+.campo input { border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; background: var(--panel); min-height: 44px }
+.error { color: var(--mal); font-weight: 600 }
+.nums { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px }
+.nums button { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--borde); background: var(--panel); font-weight: 700; cursor: pointer }
+.nums button.hecho { background: var(--okf); border-color: var(--ok); color: var(--ok) }
+.nums button[aria-current="true"] { outline: 3px solid var(--acento); outline-offset: 1px }
+.enun { font-size: 17px; line-height: 1.6 }
+.resp { display: flex; align-items: center; gap: 8px }
+.resp input { flex: 1; max-width: 220px; border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; font-size: 18px; font-family: var(--mono); background: var(--panel) }
+.opciones { display: grid; gap: 8px }
+.opciones label { display: flex; gap: 10px; align-items: center; border: 1px solid var(--borde); border-radius: 10px; padding: 10px 12px; cursor: pointer }
+.opciones input:checked + span { font-weight: 700; color: var(--acento) }
+.entre { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap }
+.permiso { background: var(--okf); color: var(--ok); border-radius: 10px; padding: 8px 12px; font-size: 14px; margin-bottom: 12px }
+/* bloqueo: tapa todo el examen (no se ve el enunciado) */
+.emergente.total { background: var(--fondo) }
+.emergente.total .emergente-caja { border-color: var(--mal) }
+.emergente.total .emergente-caja h2 { color: var(--mal) }
+.codigo { font-family: var(--mono); font-size: 34px; font-weight: 800; letter-spacing: .18em; text-align: center; margin: 6px 0 }
+.datos { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 15px; margin: 10px 0 }
+.datos b { color: var(--suave); font-weight: 600 }
+.clave-in { width: 100%; font-family: var(--mono); font-size: 28px; letter-spacing: .3em; text-align: center; border: 2px solid var(--borde); border-radius: 12px; padding: 8px; margin: 8px 0; background: var(--panel) }
+.pantalla-completa { position: fixed; top: 8px; right: 8px; z-index: 30 }
+table.tabla { width: 100%; border-collapse: collapse; font-size: 14px }
+table.tabla th, table.tabla td { border-bottom: 1px solid var(--borde); padding: 6px; text-align: left; vertical-align: top }
+.bien { color: var(--ok); font-weight: 700 }
+.mal { color: var(--mal); font-weight: 700 }
+.toast { bottom: 24px }

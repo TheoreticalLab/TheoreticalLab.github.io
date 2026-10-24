@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta name="robots" content="noindex">
+<title>Panel del profesor · examen virtual</title>
+<link rel="icon" href="../icono.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../css/estilo.css">
+<link rel="stylesheet" href="examen.css">
+</head>
+<body>
+<header class="cab"><div class="marca">Panel del <span>profesor</span></div></header>
+<main>
+  <div class="demo"><b>Prototipo.</b> Aquí generas las claves que dictas al estudiante. En la versión real este panel pedirá tu contraseña y mostrará en directo la lista de estudiantes bloqueados con el tiempo que estuvieron fuera.</div>
+  <div class="tarjeta">
+    <h1>Dar una clave</h1>
+    <p class="suave">Mira la pantalla del estudiante: verás cuánto tiempo estuvo fuera, su matrícula y un código de 4 caracteres.</p>
+    <label class="campo">Código del examen<input id="dExamen" autocomplete="off" autocapitalize="characters"></label>
+    <label class="campo">Matrícula del estudiante<input id="dMatricula" autocomplete="off" autocapitalize="characters"></label>
+    <label class="campo">Código que aparece en su pantalla<input id="dCodigo" autocomplete="off" autocapitalize="characters" maxlength="4"></label>
+    <div class="fila"><button type="button" class="btn prim" id="bClaveD">Clave para desbloquear</button><button type="button" class="btn" id="bClaveP">Clave de permiso para salir</button></div>
+    <div id="salida" aria-live="polite"></div>
+  </div>
+  <div class="tarjeta"><h2>Criterio sugerido</h2>
+    <ul class="suave"><li>Menos de 2 s: no bloquea, solo queda anotado.</li><li>Unos pocos segundos (una notificación, un toque sin querer): desbloquear.</li><li>Decenas de segundos o más: desbloquear si quieres, pero queda en el registro con su duración; la tercera salida, decides tú.</li></ul></div>
+</main>
+<footer class="pie" id="pie"></footer>
+<script type="module" src="docente.js"></script>
+</body>
+</html>
