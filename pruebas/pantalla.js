@@ -22,6 +22,8 @@ try {
   ok(!$('p-laboratorio').hidden && !!$('escena'), 'laboratorio con animación');
   const ma = $('marcaAgua'), idSes = $('cabSesion').textContent.match(/MAS-\w{4}-\w{4}/)[0];
   ok(ma && !ma.hidden && decodeURIComponent(ma.style.backgroundImage).includes(idSes) && W.getComputedStyle(ma).pointerEvents === 'none', 'marca de agua con el identificador, sin bloquear los toques');
+  ok(!!$('bAvisoInt') && /registra/.test($('p-laboratorio').textContent), 'aviso visible del registro de integridad al entrar al experimento');
+  await clic('bAvisoInt'); ok(!$('bAvisoInt'), 'el aviso se confirma con «Entendido» (queda registrado)');
   await clic('bPlay'); await dormir(400); await clic('bPlay');
   ok(/t = [1-9]|t = 0,[1-9]/.test($('relojT').textContent), 'la animación avanza: ' + $('relojT').textContent);
   await escribe('tSlider', '2.5'); await clic('bMedirAqui');
@@ -29,6 +31,10 @@ try {
   ok(q('[data-param="t"]').value === '2,5', 'el instante llega al formulario: ' + q('[data-param="t"]').value);
   await clic('bSolicitar');
   ok(!!$('predValor'), 'antes de medir pide la predicción');
+  // integridad: pegar está bloqueado y se registra; salir de la app con la predicción abierta se registra
+  { const dt = new W.DataTransfer(); dt.setData('text/plain', 'Respuesta copiada de una IA'); const ev = new W.ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }); $('predJust').dispatchEvent(ev); await dormir(50);
+    ok(ev.defaultPrevented && $('predJust').value === '' && /no se puede pegar/.test(D.body.textContent), 'pegar en la justificación está bloqueado y se avisa') }
+  W.dispatchEvent(new W.Event('blur')); await dormir(1300); W.dispatchEvent(new W.Event('focus')); await dormir(500);
   await escribe('predValor', '0,05'); await escribe('predJust', 'x = A cos(ωt) con ω = √(k/m)'); await clic('bConfirmarPred');
   ok(!!$('bEjecutar'), 'predicción confirmada; queda el botón de medir');
   await clic('bEjecutar');
@@ -43,6 +49,12 @@ try {
   // investigación
   await clic(q('nav [data-p="investigacion"]'));
   const preg = q('.pregunta'); ok(!!preg, 'hay una pregunta adaptativa: ' + (preg ? preg.textContent.slice(0, 90) : ''));
+  W.getSelection().selectAllChildren(preg); D.dispatchEvent(new W.ClipboardEvent('copy', { bubbles: true })); W.getSelection().removeAllRanges(); await dormir(500);
+  { const s = JSON.parse(W.localStorage.getItem('laboratorio-mas-v1')), I = s.sesiones[s.actual].investigaciones.C, R = I.integridad || {};
+    ok(R.pegados && R.pegados.length === 1 && R.pegados[0].contexto === 'prediccion', 'el intento de pegar queda registrado con su contexto: ' + JSON.stringify(R.pegados));
+    ok(R.salidas && R.salidas.length === 1 && R.salidas[0].contexto === 'prediccion' && R.salidas[0].segundos >= 1, 'la salida de la app durante la predicción queda registrada: ' + JSON.stringify(R.salidas));
+    ok(R.copias && R.copias.length === 1 && /^pregunta:/.test(R.copias[0].contexto), 'copiar el enunciado queda registrado: ' + JSON.stringify(R.copias && R.copias[0] && R.copias[0].contexto));
+    ok(I.predicciones[0].escritura && I.predicciones[0].escritura.caracteres > 0, 'se mide cómo se escribió la justificación') }
   for (let i = 0; i < 6 && q('.pregunta'); i++) {
     const num = $('respNum'); if (num) await escribe(num, '3'); const op = q('input[name="resp"]'); if (op) { op.checked = true } const tx = $('respTxt'); if (tx) await escribe(tx, 'Lo justifico con mis mediciones.');
     await clic('bResponder'); if ($('bSeguir')) await clic('bSeguir')

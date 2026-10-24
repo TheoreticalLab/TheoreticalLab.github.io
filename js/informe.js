@@ -4,6 +4,26 @@ import { INSTRUMENTOS, conIncertidumbre } from './mediciones.js';
 import { HIPOTESIS } from './pedagogia.js';
 import { evaluar } from './evaluacion.js';
 import { urlMarca, textoMarca } from './marca.js';
+import { resumenIntegridad } from './integridad.js';
+
+/** Sección «Registro de integridad» (HTML) para el informe y la herramienta docente. Describe señales; no juzga. */
+export function htmlIntegridad(inv) {
+  const r = resumenIntegridad(inv), R = inv.integridad || { salidas: [], copias: [], pegados: [], inserciones: [] }, f = s => { try { return new Date(s).toLocaleString('es') } catch (e) { return s } };
+  const ctx = c => !c ? '—' : c === 'prediccion' ? 'predicción' : c === 'conclusion' ? 'conclusión' : c.startsWith('pregunta:') ? 'pregunta «' + c.slice(9) + '»' : c;
+  const ev = [...R.salidas.map(s => ({ h: s.hora, t: `Salió de la app ${String(s.segundos).replace('.', ',')} s durante ${ctx(s.contexto)} (${s.motivo})` })),
+    ...R.copias.map(c => ({ h: c.hora, t: `Copió ${c.caracteres} caracteres${c.contexto ? ' durante ' + ctx(c.contexto) : ''}: «${c.inicio}${c.caracteres > 80 ? '…' : ''}»` })),
+    ...R.pegados.map(p => ({ h: p.hora, t: `Intentó ${p.como} ${p.caracteres} caracteres en «${p.campo}» (bloqueado)` })),
+    ...R.inserciones.map(p => ({ h: p.hora, t: `Inserción de ${p.caracteres} caracteres de golpe en «${p.campo}» (${p.tipo})` }))].sort((a, b) => a.h < b.h ? -1 : 1);
+  return `<table><tr><th>Señal</th><th>Valor</th></tr>
+    <tr><td>Salidas de la app durante preguntas, predicciones o la conclusión</td><td>${r.salidasDurantePreguntas} (${r.segundosFuera} s en total; la más larga, ${String(r.salidaMasLarga).replace('.', ',')} s)</td></tr>
+    <tr><td>Salidas en otros momentos (navegando por la app)</td><td>${r.salidasEnOtrosMomentos}</td></tr>
+    <tr><td>Copias de texto (de enunciados de preguntas)</td><td>${r.copiasDeTexto} (${r.copiasDeEnunciados})</td></tr>
+    <tr><td>Intentos de pegar (bloqueados)</td><td>${r.intentosDePegar}</td></tr><tr><td>Inserciones grandes de golpe</td><td>${r.insercionesGrandes}</td></tr>
+    <tr><td>Respuestas largas escritas a más de 8 caracteres por segundo</td><td>${r.respuestasEscritasMuyRapido}</td></tr></table>
+    ${inv.integridad && inv.integridad.avisoVisto ? `<p><small>Aviso del registro aceptado: ${esc(f(inv.integridad.avisoVisto))}.</small></p>` : ''}
+    ${ev.length ? `<ul>${ev.map(x => `<li><small>${esc(f(x.h))}</small> · ${esc(x.t)}</li>`).join('')}</ul>` : ''}
+    <p><small>Son señales, no pruebas: salir de la app puede ser un mensaje o una llamada, y copiar texto puede ser para tus apuntes. El registro no afecta a la nota automática.</small></p>`
+}
 
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fecha = iso => { try { return new Date(iso).toLocaleString('es') } catch (e) { return iso } };
@@ -51,6 +71,7 @@ export function informeHTML(ses, letra) {
 ${interp ? `<h2>Revisiones de interpretación</h2><ul>${interp}</ul>` : ''}
 <h2>Preguntas de la investigación y cálculos</h2>${filasResp ? `<table><tr><th>Fecha</th><th>Pregunta (tal como se mostró, con sus datos)</th><th>Respuesta</th><th>Correcta (automático)</th></tr>${filasResp}</table>` : '<p>Ninguna.</p>'}
 <h2>Conclusión final</h2>${C ? `<p><b>${esc(NOMBRE_CONCLUSION[C.tipo])}</b> · ${esc(fecha(C.hora))}</p><p>Evidencias citadas: ${C.evidencias.length ? C.evidencias.map(n => '#' + n).join(', ') : 'ninguna'}${C.z != null ? ` · significación declarada: z = ${esc(num(C.z))}` : ''}</p><p>Limitaciones reconocidas: ${C.limitaciones.length ? C.limitaciones.map(l => esc(LIMITACIONES[l] || l)).join('; ') : 'ninguna'}</p><p><b>Justificación:</b> ${esc(C.justificacion)}</p>` : '<p>Todavía no entregada.</p>'}
+<h2>Registro de integridad</h2>${htmlIntegridad(inv)}
 <h2>Calificación provisional (automática)</h2><p class="nota">${ev.total} / 100</p><table><tr><th>Criterio</th><th>Puntos</th></tr>${cats.map(([k, t]) => `<tr><td>${t}</td><td>${ev.categorias[k]} / 20</td></tr>`).join('')}</table>
 <p><small>Provisional: los textos razonados (${ev.pendienteDocente.length}) requieren revisión docente. La nota automática no interpreta el contenido de los textos.</small></p>
 </body></html>`

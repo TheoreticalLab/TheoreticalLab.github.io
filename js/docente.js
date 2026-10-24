@@ -5,7 +5,9 @@ import { medir, INSTRUMENTOS, conIncertidumbre } from './mediciones.js';
 import { evaluar } from './evaluacion.js';
 import { HIPOTESIS } from './pedagogia.js';
 import { normalizarIdentificador } from './azar.js';
-import { NOMBRE_CONCLUSION, LIMITACIONES, descargar } from './informe.js';
+import { NOMBRE_CONCLUSION, LIMITACIONES, descargar, htmlIntegridad } from './informe.js';
+import { resumenIntegridad } from './integridad.js';
+const senales = inv => { const r = resumenIntegridad(inv), s = []; if (r.salidasDurantePreguntas) s.push(`${r.salidasDurantePreguntas} salidas (${r.segundosFuera} s)`); if (r.copiasDeEnunciados) s.push(`${r.copiasDeEnunciados} copias de enunciados`); if (r.intentosDePegar) s.push(`${r.intentosDePegar} intentos de pegar`); if (r.insercionesGrandes) s.push(`${r.insercionesGrandes} inserciones grandes`); if (r.respuestasEscritasMuyRapido) s.push(`${r.respuestasEscritasMuyRapido} respuestas muy rápidas`); return s };
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -75,8 +77,8 @@ function lineaTiempo(a) {
 }
 
 function pintar() {
-  const filas = entregas.map((a, i) => `<tr><td>${esc(a.d.estudiante || '—')}</td><td class="mono">${esc(a.id)}</td><td>${a.letra}</td><td>${esc(a.modelo)}</td><td>${a.inv.conclusion ? esc(a.inv.conclusion.tipo) : '—'} ${a.inv.conclusion ? (CONCLUSIONES_ADMISIBLES[a.modelo].includes(a.inv.conclusion.tipo) ? '✓' : '✗') : ''}</td><td class="mono">${a.ev.total}</td><td class="mono">${total(a)}</td><td>${a.problemas.length ? `<span class="zchip mal">${a.problemas.length}</span>` : '<span class="zchip ok">ok</span>'}</td><td><button class="btn chico" data-ver="${i}">Revisar</button></td></tr>`).join('');
-  $('lista').innerHTML = entregas.length ? `<div class="tw"><table class="tabla"><tr><th>Estudiante</th><th>Identificador</th><th>Exp.</th><th>Modelo oculto</th><th>Conclusión</th><th>Auto</th><th>Final</th><th>Integridad</th><th></th></tr>${filas}</table></div>` : '<p class="suave">Carga los archivos JSON que entregaron tus estudiantes.</p>'
+  const filas = entregas.map((a, i) => `<tr><td>${esc(a.d.estudiante || '—')}</td><td class="mono">${esc(a.id)}</td><td>${a.letra}</td><td>${esc(a.modelo)}</td><td>${a.inv.conclusion ? esc(a.inv.conclusion.tipo) : '—'} ${a.inv.conclusion ? (CONCLUSIONES_ADMISIBLES[a.modelo].includes(a.inv.conclusion.tipo) ? '✓' : '✗') : ''}</td><td class="mono">${a.ev.total}</td><td class="mono">${total(a)}</td><td>${a.problemas.length ? `<span class="zchip mal">${a.problemas.length}</span>` : '<span class="zchip ok">ok</span>'}</td><td class="peq">${senales(a.inv).map(esc).join('<br>') || '<span class="suave">—</span>'}</td><td><button class="btn chico" data-ver="${i}">Revisar</button></td></tr>`).join('');
+  $('lista').innerHTML = entregas.length ? `<div class="tw"><table class="tabla"><tr><th>Estudiante</th><th>Identificador</th><th>Exp.</th><th>Modelo oculto</th><th>Conclusión</th><th>Auto</th><th>Final</th><th>Integridad de datos</th><th>Señales de uso</th><th></th></tr>${filas}</table></div>` : '<p class="suave">Carga los archivos JSON que entregaron tus estudiantes.</p>'
 }
 function detalle(i) {
   const a = entregas[i], n = notas[a.clave] = notas[a.clave] || {};
@@ -86,6 +88,7 @@ function detalle(i) {
     ${a.problemas.length ? `<div class="aviso mal"><b>Integridad:</b><br>${a.problemas.map(esc).join('<br>')}</div>` : '<div class="aviso ok">Todas las mediciones se reproducen exactamente desde la semilla.</div>'}
     <h3>Calificación (deja en blanco para aceptar la automática)</h3><div class="rejilla">${CATS.map(([k, t]) => `<label class="campo"><span>${t} · auto ${a.ev.categorias[k]}</span><input data-nota="${k}" inputmode="decimal" value="${n[k] ?? ''}" placeholder="${a.ev.categorias[k]}"></label>`).join('')}</div>
     <label class="campo"><span>Comentario para el estudiante</span><textarea data-comentario>${esc(n.comentario || '')}</textarea></label><p>Nota final: <b class="mono" id="notaFinal">${total(a)}</b> / 100</p>
+    <details${senales(a.inv).length ? ' open' : ''}><summary><b>Registro de integridad</b> ${senales(a.inv).length ? '· ' + esc(senales(a.inv).join(' · ')) : '· sin señales'}</summary>${htmlIntegridad(a.inv)}</details>
     <details open><summary><b>Textos razonados (${a.ev.pendienteDocente.length})</b></summary><ul>${textos}</ul></details>
     <details><summary><b>Cómo llegó a su conclusión (línea de tiempo)</b></summary><ul>${lineaTiempo(a)}</ul></details>
     <details><summary><b>Detalle de la nota automática</b></summary><pre>${esc(JSON.stringify(a.ev.detalle, null, 1))}</pre></details></div>`;
@@ -95,8 +98,8 @@ document.addEventListener('click', e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.ver != null) detalle(+b.dataset.ver);
   if (b.id === 'bGoogle') cargarGoogle();
-  if (b.id === 'bCsv') { const L = [['estudiante', 'identificador', 'experimento', 'modelo', 'conclusion', 'defendible', ...CATS.map(c => 'auto_' + c[0]), 'nota_auto', 'nota_final', 'integridad', 'comentario'].join(',')];
-    for (const a of entregas) { const n = notas[a.clave] || {}, q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"'; L.push([q(a.d.estudiante), a.id, a.letra, a.modelo, a.inv.conclusion ? a.inv.conclusion.tipo : '', a.inv.conclusion ? CONCLUSIONES_ADMISIBLES[a.modelo].includes(a.inv.conclusion.tipo) : '', ...CATS.map(c => a.ev.categorias[c[0]]), a.ev.total, total(a), a.problemas.length ? 'revisar' : 'ok', q(n.comentario)].join(',')) }
+  if (b.id === 'bCsv') { const L = [['estudiante', 'identificador', 'experimento', 'modelo', 'conclusion', 'defendible', ...CATS.map(c => 'auto_' + c[0]), 'nota_auto', 'nota_final', 'integridad', 'salidas_durante_preguntas', 'segundos_fuera', 'copias_enunciados', 'intentos_pegar', 'inserciones_grandes', 'respuestas_muy_rapidas', 'comentario'].join(',')];
+    for (const a of entregas) { const n = notas[a.clave] || {}, q = v => '"' + String(v ?? '').replace(/"/g, '""') + '"'; L.push([q(a.d.estudiante), a.id, a.letra, a.modelo, a.inv.conclusion ? a.inv.conclusion.tipo : '', a.inv.conclusion ? CONCLUSIONES_ADMISIBLES[a.modelo].includes(a.inv.conclusion.tipo) : '', ...CATS.map(c => a.ev.categorias[c[0]]), a.ev.total, total(a), a.problemas.length ? 'revisar' : 'ok', ...(r => [r.salidasDurantePreguntas, r.segundosFuera, r.copiasDeEnunciados, r.intentosDePegar, r.insercionesGrandes, r.respuestasEscritasMuyRapido])(resumenIntegridad(a.inv)), q(n.comentario)].join(',')) }
     descargar('calificaciones-laboratorio-mas.csv', '﻿' + L.join('\n'), 'text/csv') }
   if (b.id === 'bReproducir') { const id = normalizarIdentificador($('repId').value); if (!id) { $('repOut').textContent = 'Identificador no válido'; return } const A = asignacion(id);
     $('repOut').innerHTML = `<table class="tabla"><tr><th>Exp.</th><th>Modelo</th><th>m (kg)</th><th>k (N/m)</th><th>A (m)</th><th>Descripción</th></tr>${LETRAS.map(l => { const x = experimento(id, l); return `<tr><td>${l}</td><td>${A[l]}</td><td>${x.nominal.m}</td><td>${x.nominal.k}</td><td>${x.nominal.A}</td><td class="peq">${esc(describirModelo(x))}</td></tr>` }).join('')}</table>` }

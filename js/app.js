@@ -12,6 +12,7 @@ import { dibujarGrafica } from './graficas.js';
 import { aplicarMarca } from './marca.js';
 import { CONFIG } from './config.js';
 import { envioActivo, enviarAlProfesor } from './envio.js';
+import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar } from './integridad.js';
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -24,6 +25,11 @@ const inv = () => ses && ses.actual ? ses.investigaciones[ses.actual] : null;
 const exp = () => experimento(ses.id, inv().letra);
 const guardar = () => { if (ses && !guardarSesion(ses)) aviso('No se pudo guardar en este navegador (¿modo privado o sin espacio?). Descarga el JSON para no perder tu trabajo.', 'mal') };
 const aviso = (txt, tipo = 'info') => { ui.mensaje = { txt, tipo }; pintar() };
+// diálogos propios: la pérdida de foco que provocan no cuenta como «salir de la app»
+const confirmar = t => { silenciar(); const r = confirm(t); silenciar(); return r };
+instalarIntegridad(); configurarIntegridad({ aviso: t => aviso(t, 'am') });
+let tGuardar = null; alCambiar(() => { clearTimeout(tGuardar); tGuardar = setTimeout(guardar, 400) });
+const AVISO_INTEGRIDAD = 'Esta actividad registra, y tu profesor lo verá: si sales de la app mientras hay una pregunta, predicción o conclusión abierta; si copias enunciados; y cómo escribes tus respuestas. Pegar texto en las respuestas está desactivado.';
 const msg = () => { if (!ui.mensaje) return ''; const m = ui.mensaje; ui.mensaje = null; return `<div class="aviso ${m.tipo}" role="status">${esc(m.txt)}</div>` };
 
 /* ---------------- navegación y cabecera ---------------- */
@@ -42,6 +48,15 @@ function cabecera() {
 }
 function pintar() {
   cabecera(); aplicarMarca(ses, pantalla !== 'inicio' && !!inv());
+  { // contexto sensible para el registro de integridad
+    const I = inv(); let c = null;
+    if (I && !I.conclusion) {
+      if (pantalla === 'investigacion' && !ui.retro) { const q = INV.preguntaActual(ses, I); if (q) c = 'pregunta:' + q.id }
+      else if (pantalla === 'instrumentos' && I.pendiente && I.pendiente.requiere) c = 'prediccion';
+      else if (pantalla === 'informe' && I.borrador) c = 'conclusion'
+    }
+    fijarContexto(I, c)
+  }
   for (const p of ['inicio', 'laboratorio', 'instrumentos', 'investigacion', 'informe']) $('p-' + p).hidden = p !== pantalla;
   ({ inicio: pInicio, laboratorio: pLab, instrumentos: pInstr, investigacion: pInv, informe: pInforme })[pantalla]();
   if (pantalla === 'laboratorio') animar(); else ui.play = false
@@ -55,6 +70,7 @@ function pInicio() {
     <ul class="suave"><li>Tienes <b>${CREDITOS} créditos</b> por experimento: cada medición cuesta; elige las que más informan.</li>
     <li>Antes de cada medición nueva, <b>registras tu predicción</b> según el MAS ideal. Queda fijada.</li>
     <li>Las preguntas de la investigación dependen de lo que midas y respondas.</li>
+    <li><b>Registro de integridad:</b> se anota si sales de la app mientras respondes y si copias enunciados; pegar texto en las respuestas está desactivado.</li>
     <li>Terminarás con una de tres conclusiones: <b>compatible</b>, <b>incompatible</b> o <b>evidencia insuficiente</b>. Reconocer los límites de tus datos es parte de la nota.</li></ul>
     <p class="suave peq">Tu progreso se guarda solo en este navegador. Al final descarga el informe y entrégalo a tu profesor.</p></div>`;
   if (!ses) {
@@ -85,7 +101,8 @@ document.addEventListener('click', e => {
 function pLab() {
   const I = inv(), e = exp(), { fm, fa } = INV.montajeActual(I), M = montaje(e, fm, fa);
   const seg = (q, val) => [0.5, 1, 2].map(f => `<button type="button" data-mont="${q}" data-f="${f}" aria-pressed="${val === f}">×${f === 0.5 ? '½' : f}</button>`).join('');
-  $('p-laboratorio').innerHTML = msg() + `<div class="tarjeta"><div class="fila" style="justify-content:space-between"><h2>Experimento ${I.letra}</h2><span class="reloj" id="relojT">t = ${n(ui.tAnim, 2)} s</span></div>
+  const avisoInt = I.integridad && I.integridad.avisoVisto ? '' : `<div class="aviso am" role="note"><b>Antes de empezar.</b> ${esc(AVISO_INTEGRIDAD)} <button class="btn chico" id="bAvisoInt" style="margin-left:6px">Entendido</button></div>`;
+  $('p-laboratorio').innerHTML = msg() + avisoInt + `<div class="tarjeta"><div class="fila" style="justify-content:space-between"><h2>Experimento ${I.letra}</h2><span class="reloj" id="relojT">t = ${n(ui.tAnim, 2)} s</span></div>
     <canvas class="escena" id="escena" aria-label="Animación del bloque y el resorte"></canvas>
     <div class="fila" style="margin-top:10px"><button class="btn" id="bPlay">${ui.play ? 'Pausar' : 'Observar'}</button>
       <div class="seg" role="group" aria-label="Velocidad">${[1, 0.5, 0.25].map(v => `<button type="button" data-vel="${v}" aria-pressed="${ui.vel === v}">×${String(v).replace('.', ',')}</button>`).join('')}</div>
@@ -102,12 +119,13 @@ function pLab() {
 document.addEventListener('click', e => {
   const t = e.target.closest('button'); if (!t || pantalla !== 'laboratorio') return;
   if (t.id === 'bPlay') { ui.play = !ui.play; if (ui.tAnim >= T_MAX) ui.tAnim = 0; t.textContent = ui.play ? 'Pausar' : 'Observar'; animar(); return }
+  if (t.id === 'bAvisoInt') { const I = inv(); I.integridad = I.integridad || { salidas: [], copias: [], pegados: [], inserciones: [], salidasOtras: 0 }; I.integridad.avisoVisto = new Date().toISOString(); guardar(); pLab(); dibujaAhora(); return }
   if (t.id === 'bReiniciarAnim') { ui.tAnim = 0; ui.play = false; pLab(); animar(); return }
   if (t.dataset.vel) { ui.vel = +t.dataset.vel; document.querySelectorAll('[data-vel]').forEach(b => b.setAttribute('aria-pressed', b === t)); return }
   if (t.id === 'bMedirAqui') { ui.params = { ...ui.params, t: Math.round(ui.tAnim * 100) / 100, x0: ui.params.x0 }; if (!ui.instr || !INSTRUMENTOS[ui.instr].params.some(p => p.id === 't')) ui.instr = 'posicion'; ir('instrumentos'); return }
   if (t.dataset.mont) {
     const I = inv(), cur = INV.montajeActual(I), fm = t.dataset.mont === 'm' ? +t.dataset.f : cur.fm, fa = t.dataset.mont === 'a' ? +t.dataset.f : cur.fa, k = fm + '|' + fa;
-    if (!I.montajes.includes(k) && !confirm(`Montar masa ×${fm} y amplitud ×${fa} cuesta ${COSTE_MONTAJE} créditos. ¿Continuar?`)) return;
+    if (!I.montajes.includes(k) && !confirmar(`Montar masa ×${fm} y amplitud ×${fa} cuesta ${COSTE_MONTAJE} créditos. ¿Continuar?`)) return;
     const r = INV.cambiarMontaje(ses, I, fm, fa); if (r.error) return aviso(r.error, 'mal'); guardar(); ui.tAnim = 0; pintar()
   }
 });
@@ -195,7 +213,8 @@ document.addEventListener('click', e => {
   if (b.dataset.instr) { ui.instr = b.dataset.instr; ui.ultimo = null; pInstr(); return }
   if (b.dataset.graf) { ui.graf = b.dataset.graf; pintaGrafica(); return }
   if (b.id === 'bSolicitar') { ui.params = { ...ui.params, ...leerParams() }; const r = INV.prepararMedicion(ses, I, ui.instr, ui.params); if (r.error) return aviso(r.error, 'mal'); guardar(); if (!r.requierePrediccion) return ejecutar(); pintar(); setTimeout(() => $('predValor') && $('predValor').focus(), 50); return }
-  if (b.id === 'bConfirmarPred') { const r = INV.registrarPrediccion(ses, I, $('predValor').value, $('predJust').value); if (r.error) return aviso(r.error, 'mal'); guardar(); pintar(); return }
+  if (b.id === 'bConfirmarPred') { const v = $('predValor').value, j = $('predJust').value, r = INV.registrarPrediccion(ses, I, v, j); if (r.error) return aviso(r.error, 'mal');
+    I.predicciones[I.predicciones.length - 1].escritura = medirEscritura('predJust', j); guardar(); pintar(); return }
   if (b.id === 'bEjecutar') return ejecutar();
   if (b.id === 'bCancelarMed') { INV.cancelarPendiente(I); guardar(); pintar(); return }
   if (b.dataset.repetir) { const d = I.mediciones.find(x => x.n === +b.dataset.repetir); const cur = INV.montajeActual(I); if (d.fm !== cur.fm || d.fa !== cur.fa) INV.cambiarMontaje(ses, I, d.fm, d.fa); const r = INV.prepararMedicion(ses, I, d.instr, d.p); if (r.error) return aviso(r.error, 'mal'); if (r.requierePrediccion) { guardar(); pintar(); return } return ejecutar() }
@@ -235,7 +254,9 @@ document.addEventListener('click', e => {
   if (b.id === 'bResponder') {
     const q = INV.preguntaActual(ses, I); if (!q) return; const sel = [...document.querySelectorAll('input[name="resp"]:checked')].map(i => i.value);
     const r = INV.responder(ses, I, q, { numero: $('respNum') ? $('respNum').value : undefined, opcion: sel[0], opciones: q.tipo === 'multi' ? sel : undefined, texto: $('respTxt') ? $('respTxt').value : undefined });
-    if (r.error) return aviso(r.error, 'mal'); ui.retro = r; guardar(); pintar(); return
+    if (r.error) return aviso(r.error, 'mal');
+    I.respuestas[I.respuestas.length - 1].escritura = $('respTxt') ? medirEscritura('respTxt', $('respTxt').value) : medirEscritura('respNum', $('respNum') ? $('respNum').value : '');
+    ui.retro = r; guardar(); pintar(); return
   }
   if (b.id === 'bOmitir') { const q = INV.preguntaActual(ses, I); if (q) INV.omitirPregunta(I, q); guardar(); pintar(); return }
   if (b.dataset.hguardar) { const h = b.dataset.hguardar, est = document.querySelector(`[data-hestado="${h}"]`).value, nota = document.querySelector(`[data-hnota="${h}"]`).value, ev = [...document.querySelectorAll(`[data-hev="${h}"]:checked`)].map(i => +i.value);
@@ -279,9 +300,9 @@ document.addEventListener('click', e => {
   if (b.id === 'bProponer') { const t = document.querySelector('input[name="concl"]:checked'); if (!t) return aviso('Elige una de las tres conclusiones.', 'mal'); INV.proponerConclusion(I, t.value); guardar(); const q = INV.preguntaActual(ses, I); ui.mensaje = q ? { txt: 'Tienes una pregunta de desafío en Investigación sobre tu conclusión.', tipo: 'info' } : null; pintar(); return }
   if (b.id === 'bEntregar') {
     const t = document.querySelector('input[name="concl"]:checked'); if (!t) return aviso('Elige una conclusión.', 'mal');
-    if (!confirm('La entrega es definitiva: ya no podrás medir ni cambiar respuestas. ¿Entregar?')) return;
+    if (!confirmar('La entrega es definitiva: ya no podrás medir ni cambiar respuestas. ¿Entregar?')) return;
     const r = INV.entregarConclusion(I, { tipo: t.value, evidencias: [...document.querySelectorAll('[data-cev]:checked')].map(i => +i.value), z: $('cz').value, limitaciones: [...document.querySelectorAll('[data-clim]:checked')].map(i => i.value), justificacion: $('cjust').value });
-    if (r.error) return aviso(r.error, 'mal'); guardar(); pintar(); return
+    if (r.error) return aviso(r.error, 'mal'); I.conclusion.escritura = medirEscritura('cjust', $('cjust').value); guardar(); pintar(); return
   }
   if (b.id === 'bEnviar') {
     const cod = $('codClase') ? $('codClase').value : ''; b.disabled = true; b.textContent = 'Enviando…';

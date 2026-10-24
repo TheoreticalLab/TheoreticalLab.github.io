@@ -140,6 +140,36 @@ No hay búsqueda de palabras clave.
 - Una conclusión defendible con «Selección» y «Cálculos» bajos suele ser suerte.
 - Mira los cambios de hipótesis: la revisión fundamentada es lo que se quiere premiar.
 
+## 8 bis. Registro de integridad y uso de IA
+
+**Lo que no puede hacer ninguna página web:**
+- detectar o bloquear el uso de IA en el mismo dispositivo (otras apps, otras pestañas, Google Lens);
+- impedir capturas de pantalla;
+- impedir que se use un segundo dispositivo.
+
+El navegador aísla la página por diseño.
+
+**Lo que hace el laboratorio:** es transparente. Se anuncia en la misión y en un aviso que el estudiante confirma con «Entendido»; la hora de esa confirmación queda registrada.
+
+| Medida | Detalle |
+|---|---|
+| **Pegado bloqueado** | En predicciones, respuestas, notas de hipótesis, revisiones y justificación final. Cada intento queda registrado. Sí se puede pegar en alias, identificador y código de clase |
+| **Salidas de la app** | Cambio de app o pestaña, o pérdida de foco de la ventana durante ≥ 1 s mientras hay una pregunta, una predicción pendiente o la conclusión abierta. Se guarda el contexto exacto («pregunta pred-calculo», «predicción», «conclusión») y la duración. Las salidas en otros momentos solo se cuentan |
+| **Copias de texto** | Especialmente de enunciados de preguntas |
+| **Inserciones grandes de golpe** | ≥ 20 caracteres en una sola operación (portapapeles del teclado, dictado, autocompletar) |
+| **Cómo se escribió cada respuesta** | Caracteres, segundos y texto insertado de golpe. Se marcan las respuestas de ≥ 80 caracteres escritas a más de 8 caracteres por segundo |
+| **Marca de agua** | Identificador y alias en diagonal sobre las pantallas con datos y en el informe HTML: las capturas son rastreables |
+
+**Dónde lo ves:**
+- en el informe HTML («Registro de integridad»);
+- en `docente.html`: columna «Señales de uso», detalle con la lista de eventos y columnas en el CSV.
+
+**Cómo interpretarlo:**
+- Son **señales, no pruebas**: una salida puede ser un mensaje o una llamada; una copia, sus apuntes. En escritorio también cuenta pulsar en la barra de direcciones.
+- Lo que más dice es el **patrón**: salir varias veces justo durante las preguntas, después de copiar el enunciado, y volver con respuestas largas escritas muy deprisa.
+- El registro **no cambia la nota automática**. Si ves un patrón, lo más eficaz es una pregunta oral de 2–3 minutos sobre *su* investigación: con datos y modelos personales, quien no razonó no puede explicar sus propias mediciones.
+- El registro lo genera el navegador del estudiante. Alguien con conocimientos técnicos podría editarlo en el JSON. Las mediciones no se pueden falsificar sin que se note (se regeneran desde la semilla), pero el registro de integridad sí.
+
 ## 9. Limitaciones experimentales (deliberadas)
 
 - **Instrumentos:**
