@@ -7,7 +7,8 @@
 //     teclado del móvil, dictado): se deshacen y se registran; y cómo se escribió cada respuesta.
 // Nada de esto cambia la nota automática.
 
-let inv = null, idInv = '', contexto = null, pantalla = '', salida = null, silencioHasta = 0, aviso = () => { };
+let inv = null, idInv = '', contexto = null, pantalla = '', salida = null, silencioHasta = 0, aviso = () => { }, interactuo = false;
+const REAPERTURA_S = 30 * 60;      // más de 30 min fuera con la página cerrada = la cerró y la volvió a abrir otro rato (no es una salida durante el trabajo)
 const escritura = new Map(), previo = new WeakMap();
 const ahoraISO = () => new Date().toISOString();
 const CLAVE_SALIDA = 'laboratorio-mas-salida';
@@ -30,7 +31,8 @@ export function silenciar(ms = 800) { silencioHasta = Date.now() + ms }
 
 const guardaPendiente = s => { try { if (s) localStorage.setItem(CLAVE_SALIDA, JSON.stringify({ ...s, id: idInv })); else localStorage.removeItem(CLAVE_SALIDA) } catch (e) { } };
 function empiezaSalida(motivo) {
-  if (salida || Date.now() < silencioHasta || !inv || inv.conclusion) return;
+  // solo cuenta después de que el estudiante haya interactuado en esta carga de la página (abrir y cerrar sin tocar nada no es trabajar)
+  if (salida || !interactuo || Date.now() < silencioHasta || !inv || inv.conclusion) return;
   salida = { inicio: Date.now(), contexto, pantalla, motivo }; guardaPendiente(salida)
 }
 function terminaSalida(s = salida) {
@@ -43,8 +45,11 @@ function terminaSalida(s = salida) {
 // la página se cerró (o el sistema la descartó) estando fuera: se cierra la salida al reabrir la misma investigación
 function recuperarSalidaPendiente() {
   let s = null; try { s = JSON.parse(localStorage.getItem(CLAVE_SALIDA) || 'null') } catch (e) { }
-  if (s && s.id === idInv && inv && !inv.conclusion) terminaSalida({ ...s, motivo: (s.motivo || 'salida') + ' · la app se cerró mientras estaba fuera' });
-  else guardaPendiente(null)
+  if (s && s.id === idInv && inv && !inv.conclusion) {
+    const fuera = (Date.now() - s.inicio) / 1000;
+    if (fuera > REAPERTURA_S) { const R = reg(); guardaPendiente(null); if (R) { R.reaperturas = (R.reaperturas || []).concat([{ hora: new Date(s.inicio).toISOString(), horasFuera: Math.round(fuera / 360) / 10, contexto: s.contexto || null }]); onCambio() } return }
+    terminaSalida({ ...s, motivo: (s.motivo || 'salida') + ' · la app se cerró mientras estaba fuera' })
+  } else guardaPendiente(null)
 }
 
 /** Resumen de cómo se escribió un campo (se adjunta a la respuesta guardada) y lo reinicia. */
@@ -55,6 +60,7 @@ export function medirEscritura(id, texto) {
 }
 
 export function instalarIntegridad(doc = document, win = window) {
+  for (const t of ['pointerdown', 'keydown', 'touchstart', 'click']) doc.addEventListener(t, () => { interactuo = true }, { capture: true, passive: true });
   doc.addEventListener('visibilitychange', () => { if (doc.visibilityState === 'hidden') empiezaSalida('app oculta (otra app o pestaña)'); else terminaSalida() });
   win.addEventListener('blur', () => empiezaSalida('la ventana perdió el foco'));
   win.addEventListener('focus', () => terminaSalida());
@@ -101,6 +107,6 @@ export function resumenIntegridad(inv) {
   return {
     salidas: R.salidas.length + (R.salidasOtras || 0), salidasDurantePreguntas: sens.length, segundosFuera: Math.round(seg), salidaMasLarga: R.salidas.reduce((a, s) => Math.max(a, s.segundos), 0),
     salidasEnOtrosMomentos: R.salidas.length - sens.length + (R.salidasOtras || 0), copiasDeTexto: R.copias.length, copiasDeEnunciados: R.copias.filter(c => c.contexto && c.contexto.startsWith('pregunta')).length,
-    intentosDePegar: R.pegados.length, insercionesGrandes: R.inserciones.length, respuestasEscritasMuyRapido: rapidas
+    intentosDePegar: R.pegados.length, insercionesGrandes: R.inserciones.length, respuestasEscritasMuyRapido: rapidas, reaperturas: (R.reaperturas || []).length
   }
 }

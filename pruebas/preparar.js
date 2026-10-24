@@ -8,5 +8,6 @@ const mide = (instr, p, err = 0.01) => { INV.prepararMedicion(ses, inv, instr, p
 const q = INV.preguntaActual(ses, inv); INV.responder(ses, inv, q, { opcion: 'H_MAS', texto: 'Es un resorte de laboratorio: espero que cumpla la ley de Hooke.' });
 mide('periodo', { N: 10 }); mide('energia', { t: 0.5 }); mide('energia', { t: 55 }); mide('posicion', { t: 1.2 }); mide('posicion', { t: 3.7 }, 0.2); mide('posicion', { t: 6.1 });
 INV.valorarHipotesis(inv, 'H_AMORT', 'sin evaluar', 'Aún no comparo energías muy separadas', [2, 3]);
+INV.prepararMedicion(ses, inv, 'velocidad', { t: 2.4 });   // queda esperando la predicción (para la captura del formulario)
 guardarSesion(ses);
 await fetch('/resultado', { method: 'POST', body: JSON.stringify({ fin: true, lineas: ['preparada ' + ses.id], pasan: 1, total: 1 }) });

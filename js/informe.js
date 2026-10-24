@@ -18,6 +18,7 @@ export function htmlIntegridad(inv) {
     <tr><td>Salidas de la app durante preguntas, predicciones o la conclusión</td><td>${r.salidasDurantePreguntas} (${r.segundosFuera} s en total; la más larga, ${String(r.salidaMasLarga).replace('.', ',')} s)</td></tr>
     <tr><td>Salidas en otros momentos (con el experimento abierto, sin pregunta en curso)</td><td>${r.salidasEnOtrosMomentos}</td></tr>
     <tr><td>Copias de texto (de enunciados de preguntas)</td><td>${r.copiasDeTexto} (${r.copiasDeEnunciados})</td></tr>
+    <tr><td>Reaperturas (cerró la app y volvió más de 30 min después)</td><td>${r.reaperturas}</td></tr>
     <tr><td>Intentos de pegar (bloqueados)</td><td>${r.intentosDePegar}</td></tr><tr><td>Inserciones grandes de golpe</td><td>${r.insercionesGrandes}</td></tr>
     <tr><td>Respuestas largas escritas a más de 8 caracteres por segundo</td><td>${r.respuestasEscritasMuyRapido}</td></tr></table>
     ${inv.integridad && inv.integridad.avisoVisto ? `<p><small>Aviso del registro aceptado: ${esc(f(inv.integridad.avisoVisto))}.</small></p>` : ''}
