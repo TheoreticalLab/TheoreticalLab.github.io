@@ -132,7 +132,20 @@ details.formulario summary { cursor: pointer; font-weight: 600 }
 .oculto { display: none }
 .emergente { position: fixed; inset: 0; z-index: 50; background: rgba(10, 14, 20, .55); display: flex; align-items: center; justify-content: center; padding: 16px }
 .emergente-caja { background: var(--panel); color: var(--texto); border: 2px solid var(--aviso); border-radius: 16px; padding: 20px; width: min(520px, 100%); max-height: 90vh; overflow: auto; box-shadow: 0 12px 40px rgba(0, 0, 0, .3) }
-.emergente-caja h2 { color: var(--aviso) }
+.emergente-caja h2 { color: var(--aviso); text-align: center }
+/* muñeco científico animado del mensaje emergente */
+.cientifico { width: 132px; height: auto; display: block; margin: -4px auto 4px; overflow: visible }
+.cientifico .sombra { fill: rgba(0, 0, 0, .15); transform-box: fill-box; transform-origin: center; animation: sombra 3s ease-in-out infinite }
+.cientifico .cuerpo { animation: flota 3s ease-in-out infinite }
+.cientifico .brazo { transform-origin: 108px 104px; animation: busca 2.6s ease-in-out infinite }
+.cientifico .ojo { transform-box: fill-box; transform-origin: center; animation: parpadeo 4.2s infinite }
+.cientifico .brillo { animation: brillo 2.6s ease-in-out infinite }
+@keyframes flota { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
+@keyframes sombra { 0%, 100% { transform: scaleX(1) } 50% { transform: scaleX(.85) } }
+@keyframes busca { 0%, 100% { transform: rotate(-16deg) } 50% { transform: rotate(12deg) } }
+@keyframes parpadeo { 0%, 90%, 100% { transform: scaleY(1) } 94% { transform: scaleY(.1) } }
+@keyframes brillo { 0%, 100% { opacity: .35 } 50% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) { .cientifico * { animation: none !important } }
 .emergente-caja .btn { width: 100% }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 45; background: var(--texto); color: var(--panel); border-radius: 10px; padding: 10px 14px; font-size: 14px; width: max-content; max-width: calc(100% - 24px); box-shadow: 0 6px 20px rgba(0, 0, 0, .25) }
 .marca-agua { position: fixed; inset: 0; pointer-events: none; z-index: 5; background-repeat: repeat; -webkit-print-color-adjust: exact; print-color-adjust: exact }

@@ -10,6 +10,7 @@ import { guardarSesion, sesionActual, cargarSesion, listarSesiones, activarSesio
 import { dibujarEscena } from './animacion.js';
 import { dibujarGrafica } from './graficas.js';
 import { aplicarMarca } from './marca.js';
+import { CIENTIFICO_SVG } from './cientifico.js';
 import { CONFIG } from './config.js';
 import { envioActivo, enviarAlProfesor } from './envio.js';
 import { instalarIntegridad, configurarIntegridad, fijarContexto, silenciar, medirEscritura, alCambiar, alVolverApp } from './integridad.js';
@@ -38,7 +39,7 @@ let focoAntes = null;
 alVolverApp(x => {
   let el = $('avisoEtico');
   if (!el) { el = document.createElement('div'); el.id = 'avisoEtico'; el.className = 'emergente'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'tEtico'); document.body.appendChild(el) }
-  el.innerHTML = `<div class="emergente-caja"><h2 id="tEtico">Has salido de la app y has vuelto a entrar</h2>
+  el.innerHTML = `<div class="emergente-caja">${CIENTIFICO_SVG}<h2 id="tEtico">Has salido de la app y has vuelto a entrar</h2>
     <p>Nuestro sistema lo ha detectado y lo ha registrado para tu profesor: ${n(x.segundos, 0)} s fuera${CONTEXTO_TXT(x.contexto)}${x.veces > 1 ? ` · ${x.veces}.ª vez` : ''}.</p>
     <p><b>Te recordamos las reglas éticas:</b></p><ul><li>El trabajo es <b>individual</b>.</li><li>Responde <b>sin IA ni ayuda externa</b>.</li><li>Razona con <b>tus propias mediciones</b>: reconocer lo que no sabes también cuenta en la nota.</li></ul>
     <p><button type="button" class="btn prim" id="bCerrarEtico">Entendido, sigo con mi trabajo</button></p></div>`;
